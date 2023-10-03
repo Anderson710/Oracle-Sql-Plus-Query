@@ -1,0 +1,1778 @@
+/*This SQL file creates the tables for SNN*/
+
+/*To change the date format*/
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MM-YYYY';
+
+/*To allow Oracle SQL accept blank lines*/
+SET SQLBLANKLINE ON
+
+/*To set the width and length of the display*/
+SET LINESIZE 120 
+SET PAGESIZE 40
+
+/*List of parent tables, that only has PK*/
+CREATE TABLE Customer (
+	Cust_ID 	VARCHAR(4) 	NOT NULL,
+	Cust_Name 	VARCHAR(30) 	NOT NULL,
+	Cust_Contact 	VARCHAR(11),
+	Cust_Gender 	CHAR(1) 	NOT NULL,
+	
+	PRIMARY KEY(Cust_ID),
+
+	CONSTRAINT chk_cust_id check (REGEXP_LIKE(Cust_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_name check (REGEXP_LIKE(Cust_Name, '^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_contact check (REGEXP_LIKE(Cust_Contact, '^\d{10,}$')),
+	CONSTRAINT chk_gender check (UPPER(Cust_Gender) in ('M', 'F'))
+);
+
+CREATE TABLE Staff(
+	Staff_ID 	VARCHAR(4) 	NOT NULL,
+	Staff_Name 	VARCHAR(30) 	NOT NULL,
+	Staff_Salary 	NUMBER(6,2) 	NOT NULL,
+	Staff_Contact 	VARCHAR(11) 	NOT NULL,
+	Date_Join 	DATE 		NOT NULL,
+	Date_Birth 	DATE,
+	Staff_Location 	VARCHAR(20),
+
+	PRIMARY KEY(Staff_ID),
+
+	CONSTRAINT chk_staff_id check (REGEXP_LIKE(Staff_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_staff_name check (REGEXP_LIKE(Staff_Name, '^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_staff_salary check (Staff_Salary >= 0),
+	CONSTRAINT chk_staff_contact check (REGEXP_LIKE(Staff_Contact, '^(\d{10,}$)'))
+);
+
+CREATE TABLE Category(
+	Cat_ID 		VARCHAR(4) 	NOT NULL,
+	Cat_Name 	VARCHAR(20) 	NOT NULL,
+	Cat_Desc 	VARCHAR(200), 
+	Min_Price 	NUMBER(5,2) 	NOT NULL,
+	Max_Price 	NUMBER(5,2) 	NOT NULL,
+
+	PRIMARY KEY(Cat_ID),
+
+	CONSTRAINT chk_cat_id check (REGEXP_LIKE(Cat_ID,'^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_cat_name check (REGEXP_LIKE(Cat_Name,'^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_min_price check (Min_Price >= 0),
+	CONSTRAINT chk_max_price check (Max_Price >= 0)
+);
+
+CREATE TABLE Cancellation(
+	Cancel_ID	VARCHAR(3)	NOT NULL,
+	Cancel_NumItem	NUMBER(2)	NOT NULL,
+
+	PRIMARY KEY(Cancel_ID),
+
+	CONSTRAINT chk_cancel_id check (REGEXP_LIKE(Cancel_ID, '^([A-Z]{1}+)([0-9]{2})$')),
+	CONSTRAINT chk_numitem check (Cancel_NumItem >= 0)
+);
+
+CREATE TABLE Refund(
+	Ref_ID 		VARCHAR(3) 	NOT NULL,
+	Ref_NumItem 	NUMBER(2)	NOT NULL,
+	Ref_Remarks	VARCHAR(50)	NOT NULL,
+
+	PRIMARY KEY(Ref_ID),
+
+	CONSTRAINT chk_ref_id check (REGEXP_LIKE(Ref_ID, '^([A-Z]{1}+)([0-9]{2})$')),
+	CONSTRAINT chk_ref_numitem check (Ref_NumItem>= 0)
+);
+
+CREATE TABLE Promotion(
+	Promo_ID	VARCHAR(4) 	NOT NULL,
+	Promo_Name	VARCHAR(20)	NOT NULL,
+	Promo_Type	VARCHAR(10) 	NOT NULL,
+	Promo_Desc	VARCHAR(50)	NOT NULL,
+
+	PRIMARY KEY(Promo_ID),
+
+	CONSTRAINT chk_id check (REGEXP_LIKE(Promo_ID, '^([A-Z]{1}+)([0-9]{3})$'))
+);
+
+CREATE TABLE Takeaway(
+	Take_ID		VARCHAR(4)	NOT NULL,
+	Take_Charges	NUMBER(4,2)	NOT NULL,
+	Take_Time	VARCHAR(10) 	NOT NULL,
+	Take_Type	VARCHAR(20) 	NOT NULL,
+
+	PRIMARY KEY(Take_ID),
+
+	CONSTRAINT chk_take_id check (REGEXP_LIKE(Take_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_take_charges check (Take_Charges >= 0)
+);
+
+CREATE TABLE Supplier(
+	Supp_ID  	VARCHAR(4) 	NOT NULL,
+	Supp_Name 	VARCHAR(30) 	NOT NULL,
+	Supp_Type 	VARCHAR(10) 	NOT NULL,
+	Supp_Contact 	VARCHAR(11) 	NOT NULL,
+	Supp_Email 	VARCHAR(40),
+	Supp_Address 	VARCHAR(50) 	NOT NULL,
+
+	PRIMARY KEY(Supp_ID),
+
+	CONSTRAINT chk_supp_id check (REGEXP_LIKE(Supp_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_supp_name check (REGEXP_LIKE(Supp_Name, '^(([a-zA-Z]\s*\.*){2,})$')),
+	CONSTRAINT chk_supp_contact check (REGEXP_LIKE(Supp_Contact, '^\d{10,}$')),
+	CONSTRAINT chk_supp_email check (REGEXP_LIKE(Supp_Email,'^[a-zA-Z]\w+@(\S+)$'))
+);
+
+CREATE TABLE Raw_Ingredient(
+	Ing_ID 		VARCHAR(4) 	NOT NULL,
+	Ing_Name 	VARCHAR(15) 	NOT NULL,
+	Ing_Qty	 	NUMBER(3) 	NOT NULL,
+	Ing_Unit 	VARCHAR(10) 	NOT NULL,
+	Ing_QtyReq 	NUMBER(3) 	NOT NULL,
+
+	PRIMARY KEY(Ing_ID),
+
+	CONSTRAINT chk_ing_id check (REGEXP_LIKE(Ing_ID,'^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_ing_name check (REGEXP_LIKE(Ing_Name,'^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_ing_qty check (Ing_Qty >= 0),
+	CONSTRAINT chk_ing_unit check (REGEXP_LIKE(Ing_Unit,'^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_ing_qtyReq check (Ing_QtyReq >= 0)
+);
+
+/*List of Child Tables, with PK and FK*/
+CREATE TABLE Menu(
+	Item_ID 	VARCHAR(4) 	NOT NULL,
+	Item_Name 	VARCHAR(30) 	NOT NULL,
+	Item_Desc 	VARCHAR(200),
+	Item_Price 	NUMBER(5,2) 	NOT NULL,
+	Date_Intro 	DATE 		NOT NULL,
+	Cat_ID 		VARCHAR(4) 	NOT NULL,
+	Menu_Remarks 	VARCHAR(100),
+
+	PRIMARY KEY(Item_ID),
+	FOREIGN KEY(Cat_ID) REFERENCES Category(Cat_ID),
+
+	CONSTRAINT chk_item_id check (REGEXP_LIKE(Item_ID,'^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_item_name check (REGEXP_LIKE(Item_Name,'^(([a-zA-Z]\s*){2,})$'))
+);
+
+CREATE TABLE Menu_Ingredient_List(
+	Item_ID 	VARCHAR(4) 	NOT NULL,
+	Ing_ID 		VARCHAR(4) 	NOT NULL,
+	Usage_Qty 	NUMBER(5,2) 	NOT NULL,
+	Usage_Unit 	VARCHAR(10) 	NOT NULL,
+
+	PRIMARY KEY(Item_ID,Ing_ID),
+	FOREIGN KEY(Item_ID) REFERENCES Menu(Item_ID),
+	FOREIGN KEY(Ing_ID) REFERENCES Raw_Ingredient(Ing_ID),
+
+	CONSTRAINT chk_usage_qty check (Usage_Qty >= 0),
+	CONSTRAINT chk_usage_unit check (REGEXP_LIKE(Usage_Unit,'^(([a-zA-Z]\s*){2,})$'))
+);
+
+CREATE TABLE Supplier_Ingredient_List(
+	Supp_ID 	VARCHAR(4) 	NOT NULL,
+	Ing_ID 		VARCHAR(4) 	NOT NULL,
+	Supp_Qty 	NUMBER(4) 	NOT NULL,
+	Supp_Unit 	VARCHAR(10) 	NOT NULL,
+	Supp_UPrice 	NUMBER(5,2) 	NOT NULL,
+
+	PRIMARY KEY(Supp_ID, Ing_ID),
+	FOREIGN KEY(Supp_ID) REFERENCES Supplier(Supp_ID),
+	FOREIGN KEY(Ing_ID) REFERENCES Raw_Ingredient(Ing_ID),
+
+	CONSTRAINT chk_supp_qty check (Supp_Qty >= 0),
+	CONSTRAINT chk_supp_unit check (REGEXP_LIKE(Supp_Unit,'^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_supp_uprice check (Supp_UPrice >= 0)
+);
+
+CREATE TABLE Requisition_Purchase(
+	Purc_ID 	VARCHAR(4) 	NOT NULL,
+	Staff_ID 	VARCHAR(4) 	NOT NULL,
+	Purc_Date 	DATE 		NOT NULL,
+	Supp_ID 	VARCHAR(4) 	NOT NULL,
+	Purc_Status 	VARCHAR(10) 	NOT NULL,
+	Num_Requisition NUMBER(3) 	NOT NULL,
+	Purc_Amt 	NUMBER(6,2) 	NOT NULL,
+	
+	PRIMARY KEY(Purc_ID),
+	FOREIGN KEY(Staff_ID) REFERENCES Staff(Staff_ID),
+	FOREIGN KEY(Supp_ID) REFERENCES	Supplier(Supp_ID),
+
+	CONSTRAINT chk_purc_id check (REGEXP_LIKE(Purc_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_num_requisition check (Num_Requisition >= 0),
+	CONSTRAINT chk_purc_amt check (Purc_Amt >= 0)
+);
+
+CREATE TABLE Requisition_List(
+	Purc_ID 	VARCHAR(4) 	NOT NULL,
+	Ing_ID 		VARCHAR(4) 	NOT NULL,
+	ReqItem_Qty 	NUMBER(4) 	NOT NULL,
+	ReqItem_Unit 	VARCHAR(10) 	NOT NULL,
+	ReqItem_UPrice 	NUMBER(5,2) 	NOT NULL,
+	ReqItem_Subttl 	NUMBER(10,2) 	NOT NULL,
+
+	PRIMARY KEY(Purc_ID, Ing_ID),
+	FOREIGN KEY(Purc_ID) REFERENCES Requisition_Purchase(Purc_ID),
+	FOREIGN KEY(Ing_ID) REFERENCES Raw_Ingredient(Ing_ID),	
+
+	CONSTRAINT chk_reqItem_qty check (ReqItem_Qty >= 0),
+	CONSTRAINT chk_reqItem_Unit check (REGEXP_LIKE(ReqItem_Unit,'^(([a-zA-Z]\s*){2,})$')),
+	CONSTRAINT chk_reqItem_Uprice check (ReqItem_UPrice >= 0),
+	CONSTRAINT chk_reqItem_Subttl check (ReqItem_Subttl >= 0)
+);
+
+CREATE TABLE Menu_Order(
+	Ord_ID 		VARCHAR(4) 	NOT NULL,
+	Cust_ID 	VARCHAR(4)  	NOT NULL,
+	Ord_Date 	DATE 		NOT NULL,
+	Ord_Time 	VARCHAR(10)  	NOT NULL,
+	Staff_ID 	VARCHAR(4) 	NOT NULL,
+	Ord_Type 	VARCHAR(8) 	NOT NULL,
+	Num_Item 	NUMBER(4) 	NOT NULL,	
+	Promo_ID 	VARCHAR(4),
+	Ord_Amt  	NUMBER(6,2) 	NOT NULL,
+	Take_ID 	VARCHAR(4),
+
+	PRIMARY KEY(Ord_ID),
+	FOREIGN KEY(Cust_ID) REFERENCES Customer(Cust_ID),
+	FOREIGN KEY(Staff_ID) REFERENCES Staff(Staff_ID),
+	FOREIGN KEY(Promo_ID) REFERENCES Promotion(Promo_ID),
+	FOREIGN KEY(Take_ID) REFERENCES Takeaway(Take_ID),
+
+	CONSTRAINT chk_ord_id check (REGEXP_LIKE(Ord_ID, '^([A-Z]{1}+)([0-9]{3})$')),
+	CONSTRAINT chk_num_item check (Num_Item >= 0),
+	CONSTRAINT chk_ord_amount check (Ord_Amt >= 0)
+);
+
+CREATE TABLE Order_Item (
+	Ord_ID 		VARCHAR(4) 	NOT NULL,
+	Item_ID 	VARCHAR(4) 	NOT NULL,
+	OrdItem_Qty 	NUMBER(3) 	NOT NULL,
+	Promo_ID 	VARCHAR(4),
+	OrdItem_Subttl 	NUMBER(6,2),	
+	Cancel_ID 	VARCHAR(3),
+	Ref_ID 	 	VARCHAR(3),
+
+	PRIMARY KEY(Ord_ID,Item_ID),
+	FOREIGN KEY(Ord_ID) REFERENCES Menu_Order (Ord_ID),
+	FOREIGN KEY(Item_ID) REFERENCES Menu (Item_ID),
+	FOREIGN KEY(Promo_ID) REFERENCES Promotion (Promo_ID),
+	FOREIGN KEY(Cancel_ID) REFERENCES Cancellation (Cancel_ID),
+	FOREIGN KEY(Ref_ID) REFERENCES Refund (Ref_ID),
+
+	CONSTRAINT chk_orditem_qty check (OrdItem_Qty >= 0),
+	CONSTRAINT chk_orditem_subttl check (OrdItem_Subttl >= 0)
+);
+
+
+/*To insert data*/
+/*Customer Data*/
+INSERT INTO Customer VALUES ('A555', 'Ahmad bin Abdullah', '01992527664', 'M');
+INSERT INTO Customer VALUES ('A736', 'Ahmad Farhan', '01643910670', 'M');
+INSERT INTO Customer VALUES ('A627', 'Arun Singh', '01896598321', 'M');
+INSERT INTO Customer VALUES ('A347', 'Chin Wei Ming', '01421928851', 'M');
+INSERT INTO Customer VALUES ('A777', 'Chong Wei Ming', '0166129623', 'M');
+INSERT INTO Customer VALUES ('A705', 'Deepa Nair', '0169244193', 'F');
+INSERT INTO Customer VALUES ('A786', 'Henry Lim', '0156393683', 'F');
+INSERT INTO Customer VALUES ('A757', 'Joseph Chong', '0101651309', 'F');
+INSERT INTO Customer VALUES ('A376', 'Lee Mei Ling', '0124567106', 'F');
+INSERT INTO Customer VALUES ('A947', 'Lim Chun Kit', '0189127510', 'M');
+INSERT INTO Customer VALUES ('A082', 'Lim Wei Jie', '0120153931', 'M');
+INSERT INTO Customer VALUES ('A210', 'Lim Wei Ling', '0121060726', 'F');
+INSERT INTO Customer VALUES ('A371', 'Lim Wei Ling', '01857059331', 'M');
+INSERT INTO Customer VALUES ('A129', 'Lina Abdullah', '0145948699', 'F');
+INSERT INTO Customer VALUES ('A710', 'Loh Kim Yew', '0189816749', 'M');
+INSERT INTO Customer VALUES ('A428', 'Matthew Lim', '01585239396', 'M');
+INSERT INTO Customer VALUES ('A378', 'Mohd Amirul', '0115130816', 'F');
+INSERT INTO Customer VALUES ('A056', 'Muhammad bin Hassan', '0118795913', 'M');
+INSERT INTO Customer VALUES ('A959', 'Muhammad bin Ismail', '0155195011', 'F');
+INSERT INTO Customer VALUES ('A949', 'Nurul Aisyah', '01812690917', 'F');
+INSERT INTO Customer VALUES ('A310', 'Chin Wei Ling', '01887032028', 'F');
+INSERT INTO Customer VALUES ('A897', 'Nurul Azizah', '0149402406', 'M');
+INSERT INTO Customer VALUES ('A021', 'Nurul Huda Binti Ismail', '0194587903', 'F');
+INSERT INTO Customer VALUES ('A165', 'Priya Balan Krishnan', '01685650953', 'F');
+INSERT INTO Customer VALUES ('A531', 'Priya Devi', '01348702081', 'F');
+INSERT INTO Customer VALUES ('A898', 'Rajesh Kumar', '0114199605', 'M');
+INSERT INTO Customer VALUES ('A070', 'Divyaa', '0125115039', 'F');
+INSERT INTO Customer VALUES ('A987', 'Rajesh Sharma', '01147516141', 'M');
+INSERT INTO Customer VALUES ('A185', 'Ramesh Subramaniam', '0164705841', 'M');
+INSERT INTO Customer VALUES ('A970', 'Ravi Kumar', '01133331220', 'F');
+INSERT INTO Customer VALUES ('A168', 'Ravi Kumar', '01972069361', 'M');
+INSERT INTO Customer VALUES ('A053', 'Ryan Wong', '0178624530', 'M');
+INSERT INTO Customer VALUES ('A657', 'Siti Aisyah Mohd Yusof', '01424941990', 'F');
+INSERT INTO Customer VALUES ('A399', 'Siti binti Mohamad', '01368683328', 'F');
+INSERT INTO Customer VALUES ('A976', 'Siti binti Mohd Yusof', '01158003442', 'F');
+INSERT INTO Customer VALUES ('A717', 'Sophia Lee', '0114761453', 'F');
+INSERT INTO Customer VALUES ('A813', 'Suresh Menon', '01453468088', 'M');
+INSERT INTO Customer VALUES ('A429', 'Ng Kok Wai', '0158824447', 'M');
+INSERT INTO Customer VALUES ('A724', 'Tan Ah Meng', '0183043787', 'M');
+INSERT INTO Customer VALUES ('A141', 'Tan Ah Seng', '0152585603', 'M');
+INSERT INTO Customer VALUES ('A630', 'Tan Bee Leng', '0183345266', 'M');
+INSERT INTO Customer VALUES ('A559', 'Tan Mei Ling', '01768019016', 'F');
+INSERT INTO Customer VALUES ('A798', 'Teoh Mei Ling', '0103800222', 'F');
+INSERT INTO Customer VALUES ('A101', 'Victoria Wong', '0186204246', 'F');
+INSERT INTO Customer VALUES ('A031', 'Wong Li Ting', '01411562606', 'F');
+INSERT INTO Customer VALUES ('A925', 'Wong Li Xin', '0138240927', 'F');
+INSERT INTO Customer VALUES ('A834', 'Wong Li Ying', '0110665507', 'F');
+INSERT INTO Customer VALUES ('A490', 'Lim Siew Yee', '01564248440', 'F');
+INSERT INTO Customer VALUES ('A694', 'Tan Wei Xuan', '01573684608', 'M');
+INSERT INTO Customer VALUES ('A130', 'Wong Siew Hui', '01150314210', 'F');
+
+
+/*Staff Data*/
+INSERT INTO Staff VALUES ('M030', 'Lai Wei Jie', '5352', '01921047187', '08/05/2017', '30/11/1987', 'Perak');
+INSERT INTO Staff VALUES ('M056', 'Jasmine Tan', '4749', '0180397116', '16/09/2018', '01/03/1973', 'Kuala Lumpur');
+INSERT INTO Staff VALUES ('M067', 'Lim Jia Wen', '4524', '01025891035', '17/11/2020', '29/10/2000', 'Kelantan');
+INSERT INTO Staff VALUES ('M071', 'Tan Sze Ling', '4890', '0190481319', '23/11/2020', '04/08/1989', 'Kuala Lumpur');
+INSERT INTO Staff VALUES ('M142', 'Jamaluddin Ali', '5151', '01749039556', '02/06/2021', '13/11/2005', 'Kuala Lumpur');
+INSERT INTO Staff VALUES ('M149', 'Tan Kim Li', '5504', '0140104094', '10/12/2022', '15/01/1976', 'Johor');
+INSERT INTO Staff VALUES ('M238', 'Suresh Menon', '3899', '0106304037', '24/01/2022', '08/09/1984', 'Pahang');
+INSERT INTO Staff VALUES ('M241', 'Ng Jia Hui', '5086', '0137401405', '06/12/2021', '08/10/1986', 'Negeri Sembilan');
+INSERT INTO Staff VALUES ('M244', 'Chen Ming Wei', '6483', '0172529730', '11/09/2020', '11/06/1971', 'Penang');
+INSERT INTO Staff VALUES ('M279', 'Gan Pei Ling', '6305', '0164421098', '03/01/2021', '17/04/1991', 'Terengganu');
+INSERT INTO Staff VALUES ('M295', 'Wong Chun Hei', '3893', '0123823090', '24/06/2023', '03/11/1970', 'Perak');
+INSERT INTO Staff VALUES ('M312', 'Ng Sze Yee', '4658', '0169038145', '27/05/2021', '19/08/1998', 'Negeri Sembilan');
+INSERT INTO Staff VALUES ('M314', 'Lee Mei Yen', '4199', '0121873587', '14/05/2021', '29/08/1966', 'Sabah');
+INSERT INTO Staff VALUES ('M333', 'Priya Subramaniam', '4035', '01317660965', '01/12/2023', '08/04/1982', 'Johor');
+INSERT INTO Staff VALUES ('M346', 'Wong Xin Yi', '5656', '0139060815', '07/07/2021', '11/11/1993', 'Sabah');
+INSERT INTO Staff VALUES ('M386', 'Ravi Shankar', '3856', '01921454468', '03/07/2022', '17/03/2002', 'Perak');
+INSERT INTO Staff VALUES ('M390', 'Rajesh Prasad', '3197', '0110901456', '25/11/2020', '09/01/1997', 'Kedah');
+INSERT INTO Staff VALUES ('M488', 'Ng Kok Heng', '6446', '01858298266', '26/10/2020', '13/07/1973', 'Sarawak');
+INSERT INTO Staff VALUES ('M511', 'Teoh Wei Xuan', '5593', '01068226869', '16/01/2022', '30/01/1973', 'Kelantan');
+INSERT INTO Staff VALUES ('M521', 'Lim Wei Jie', '3889', '01383254280', '17/10/2020', '16/10/1983', 'Perlis');
+INSERT INTO Staff VALUES ('M563', 'Chen Wei Lun', '3954', '01168598441', '27/11/2022', '11/09/1983', 'Melaka');
+INSERT INTO Staff VALUES ('M588', 'Aisha Rahman', '6300', '0148066482', '17/01/2021', '11/05/2005', 'Perak');
+INSERT INTO Staff VALUES ('M696', 'Ong Siew Mei', '6001', '01877333759', '07/09/2021', '30/07/2005', 'Penang');
+INSERT INTO Staff VALUES ('M740', 'Raju Ahmad', '4863', '01878955989', '12/01/2020', '10/12/1991', 'Melaka');
+INSERT INTO Staff VALUES ('M741', 'Cheong Wei Ming', '5323', '0186281910', '20/12/2020', '20/09/1968', 'Selangor');
+INSERT INTO Staff VALUES ('M813', 'Ahmad Iskandar', '5844', '01269258381', '26/08/2018', '04/09/1970', 'Penang');
+INSERT INTO Staff VALUES ('M815', 'Nurul Hassan', '6292', '01029084938', '11/01/2020', '09/08/1966', 'Melaka');
+INSERT INTO Staff VALUES ('M868', 'Deepa Krishnan', '4116', '0152395876', '21/11/2020', '03/03/1995', 'Sabah');
+INSERT INTO Staff VALUES ('M871', 'Jamaluddin Ali', '3788', '0100081994', '23/08/2018', '09/02/1975', 'Melaka');
+INSERT INTO Staff VALUES ('M938', 'Lee Wei Ting', '5983', '01667293547', '26/12/2020', '10/01/1970', 'Kedah');
+
+
+/*Category Data*/
+INSERT INTO Category VALUES ('E001', 'Mee', 'Fried noodles, rice noodles, rice vermicelli and also Lai Fun as choice for every different customers', '7', '15');
+INSERT INTO Category VALUES ('E002', 'Rice', 'Carbohydrate-based foods for energy replenishment', '8', '18.5');
+INSERT INTO Category VALUES ('E003', 'Sides', 'Crispy and flavoured sides will ensure every snak lovers will not be put off', '12.5', '24.7');
+INSERT INTO Category VALUES ('E004', 'Beverages', 'Cooling beverages specially made for customers', '11.9', '17.6');
+INSERT INTO Category VALUES ('E005', 'Dessert', 'Enjoy your high tea or after meal with the delicious dessert ', '11.9', '18.9');
+INSERT INTO Category VALUES ('E006', 'Seafood', '100% freshly seafood are waiting to serve to you.', '11.9', '180.7');
+INSERT INTO Category VALUES ('E007', 'Lunch Set', 'Its time to enjoy our set in this afternoon. ', '14', '46.8');
+INSERT INTO Category VALUES ('E008', 'Bread', 'Fresh baking is the principle we always adhere to.', '4.5', '8.5');
+
+
+/*Cancellation Data*/
+INSERT INTO Cancellation VALUES ('F32', '10');
+INSERT INTO Cancellation VALUES ('F46', '3');
+INSERT INTO Cancellation VALUES ('F97', '1');
+INSERT INTO Cancellation VALUES ('F70', '2');
+INSERT INTO Cancellation VALUES ('F80', '8');
+INSERT INTO Cancellation VALUES ('F91', '4');
+INSERT INTO Cancellation VALUES ('F30', '10');
+INSERT INTO Cancellation VALUES ('F29', '9');
+INSERT INTO Cancellation VALUES ('F79', '3');
+INSERT INTO Cancellation VALUES ('F38', '6');
+INSERT INTO Cancellation VALUES ('F47', '10');
+INSERT INTO Cancellation VALUES ('F35', '8');
+INSERT INTO Cancellation VALUES ('F33', '8');
+INSERT INTO Cancellation VALUES ('F96', '9');
+INSERT INTO Cancellation VALUES ('F73', '6');
+INSERT INTO Cancellation VALUES ('F93', '9');
+INSERT INTO Cancellation VALUES ('F51', '6');
+INSERT INTO Cancellation VALUES ('F23', '2');
+INSERT INTO Cancellation VALUES ('F48', '6');
+INSERT INTO Cancellation VALUES ('F31', '2');
+INSERT INTO Cancellation VALUES ('F63', '5');
+INSERT INTO Cancellation VALUES ('F84', '9');
+INSERT INTO Cancellation VALUES ('F36', '1');
+INSERT INTO Cancellation VALUES ('F62', '1');
+INSERT INTO Cancellation VALUES ('F76', '4');
+INSERT INTO Cancellation VALUES ('F55', '1');
+INSERT INTO Cancellation VALUES ('F17', '1');
+INSERT INTO Cancellation VALUES ('F27', '9');
+INSERT INTO Cancellation VALUES ('F50', '4');
+INSERT INTO Cancellation VALUES ('F58', '5');
+
+
+/*Refund Data*/
+INSERT INTO Refund VALUES ('J22', '1', 'Poor presentation');
+INSERT INTO Refund VALUES ('J07', '9', 'Food quality');
+INSERT INTO Refund VALUES ('J09', '9', 'Late delivery');
+INSERT INTO Refund VALUES ('J33', '7', 'Food quality');
+INSERT INTO Refund VALUES ('J43', '8', 'Late delivery');
+INSERT INTO Refund VALUES ('J81', '2', 'Late delivery');
+INSERT INTO Refund VALUES ('J54', '10', 'Allergen Cross-Contamination');
+INSERT INTO Refund VALUES ('J30', '9', 'Poor presentation');
+INSERT INTO Refund VALUES ('J83', '4', 'Food quality');
+INSERT INTO Refund VALUES ('J41', '10', 'Incorrect order');
+INSERT INTO Refund VALUES ('J19', '8', 'Late delivery');
+INSERT INTO Refund VALUES ('J79', '3', 'Dietary Restrictions Not Followed');
+INSERT INTO Refund VALUES ('J42', '3', 'Food quality');
+INSERT INTO Refund VALUES ('J90', '4', 'Dietary Restrictions Not Followed');
+INSERT INTO Refund VALUES ('J59', '7', 'Food quality');
+INSERT INTO Refund VALUES ('J80', '5', 'Food quality');
+INSERT INTO Refund VALUES ('J06', '4', 'Incorrect order');
+INSERT INTO Refund VALUES ('J51', '5', 'Dietary Restrictions Not Followed');
+INSERT INTO Refund VALUES ('J37', '3', 'Allergen Cross-Contamination');
+INSERT INTO Refund VALUES ('J21', '4', 'Late delivery');
+
+
+/*Promotion Data*/
+INSERT INTO Promotion VALUES ('H356', 'Perfect10Savings', 'voucher', 'RM10 voucher for payment exceed RM50');
+INSERT INTO Promotion VALUES ('H197', 'Perfect20Savings', 'voucher', 'RM20 voucher for payment exceed RM100');
+INSERT INTO Promotion VALUES ('H491', 'Perfect30Savings', 'voucher', 'RM30 voucher for payment exceed RM150');
+INSERT INTO Promotion VALUES ('H891', 'Perfect40Savings', 'voucher', 'RM40 voucher for payment exceed RM200');
+INSERT INTO Promotion VALUES ('H152', 'Perfect50Savings', 'voucher', 'RM50 voucher for payment exceed RM250');
+INSERT INTO Promotion VALUES ('H655', 'Gifts Galore', 'free gift', 'A random free gift by set purchase');
+INSERT INTO Promotion VALUES ('H636', '20% Off!', 'discount', '20% discount on the purchase of all bread items');
+
+
+/*Takeaway Data*/
+INSERT INTO Takeaway VALUES ('P548', '5.8','11:30', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P887', '6', '19:00', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P513', '16.8', '19:00', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P384', '6.13', '17:35', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P920', '9.16', '22:00', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P373', '13.04', '15:03', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P824', '9.69', '15:53', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P978', '12.83', '10:31', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P314', '6.22', '19:01', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P644', '9.27', '11:28', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P757', '10.37', '18:01', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P935', '16.38', '16:21', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P712', '7.93', '11:00', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P562', '10.76', '22:09', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P834', '13.62', '11:12', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P302', '14.48', '11:58', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P001', '10.33', '11:12', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P781', '13.25', '21:10', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P814', '10.65', '19:46', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P184', '10.2', '19:30', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P222', '2.28', '11:45', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P249', '12.53', '12:35', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P902', '12.43', '10:20', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P152', '18.45', '10:30', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P718', '12.54', '13:21', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P259', '3.57', '14:00', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P811', '7.09', '20:31', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P604', '7.57', '20:39', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P444', '16.15', '10:34', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P083', '7.32', '21:00', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P724', '1.14', '15:37', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P532', '18.64', '16:15', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P457', '7.4', '12:05', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P955', '6.94', '20:40', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P602', '8.37', '15:12', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P599', '18.36', '22:09', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P629', '7.83', '15:59', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P782', '8', '13:40', 'Self-Pickup');
+INSERT INTO Takeaway VALUES ('P273', '16.08', '10:58', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P230', '9.29', '19:45', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P977', '12.87', '15:00', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P322', '19.48', '16:00', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P274', '19.57', '11:32', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P308', '5.37', '19:23', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P749', '3.5', '16:25', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P690', '19.13', '14:44', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P016', '8.1', '14:56', 'GrabFood');
+INSERT INTO Takeaway VALUES ('P150', '3.67', '15:53', 'ShopeeFood');
+INSERT INTO Takeaway VALUES ('P852', '16.67', '16:10', 'FoodPanda');
+INSERT INTO Takeaway VALUES ('P238', '13.7', '19:15', 'GrabFood');
+
+
+/*Supplier Data*/
+INSERT INTO Supplier VALUES ('N030', 'Magna Commerce Corp.', 'Seafood', '01036925134', 'magnacommerce@yahoo.com', '53 Jalan Bahagia, Pekan Bahagia');
+INSERT INTO Supplier VALUES ('N049', 'EnviroTech Trading', 'General', '0139798351', 'envirotechtrading@yahoo.com', '18 Jalan Gemilang, Bandar Bahagia');
+INSERT INTO Supplier VALUES ('N089', 'Eastern Star Trading', 'Drinks', '0159954195', 'easternstartrading@gmail.com', '11 Lorong Sentosa, Taman Ceria');
+INSERT INTO Supplier VALUES ('N091', 'Sunrise Materials Co.', 'General', '0149452724', 'sunrisematerials@yahoo.com', '75 Lorong Damai, Taman Bahagia');
+INSERT INTO Supplier VALUES ('N093', 'Reliant Resources Sdn Bhd', 'General', '01477927975', 'reliantresources@hotmail.com', '61 Lorong Sentosa, Pekan Lama');
+INSERT INTO Supplier VALUES ('N111', 'Noble Products Trading', 'Pastry', '01291190126', 'nobleproductstrading@gmail.com', '29 Jalan Sentosa, Kampung Bahagia');
+INSERT INTO Supplier VALUES ('N148', 'Grandeur Trade Links', 'General', '0127129862', 'grandeurtradelinks@yahoo.com', '48 Jalan Merdeka, Bandar Damai');
+INSERT INTO Supplier VALUES ('N166', 'Prestige Supplies Group', 'General', '0194923697', 'prestigesupplies@yahoo.com', '88 Jalan Harmoni, Pekan Damai');
+INSERT INTO Supplier VALUES ('N214', 'Optimal Sourcing Hub', 'General', '0155433768', 'optimalsourcinghub@hotmail.com', '14 Lorong Cemerlang, Kampung Sejahtera');
+INSERT INTO Supplier VALUES ('N228', 'Oceanic Exporters', 'General', '01819833562', 'oceanicexporters@hotmail.com', '6 Jalan Raja, Kampung Bahagia');
+INSERT INTO Supplier VALUES ('N263', 'Sparkline Merchandising', 'General', '0100701942', 'sparklinemerchandising@yahoo.com', '61 Persiaran Jaya, Bandar Seri Damai');
+INSERT INTO Supplier VALUES ('N269', 'Infinite Materials Solutions', 'General', '0502898178', 'infinitesupplies@hotmail.com', '78 Jalan Merdeka, Kampung Baru');
+INSERT INTO Supplier VALUES ('N286', 'Dynamic Supplies Network', 'General', '01993914923', 'dynamicsuppliesnetwork@hotmail.com', '12 Persiaran Seri Cemerlang, Bandar Seri Perdana');
+INSERT INTO Supplier VALUES ('N341', 'Vista Import Export', 'Pastry', '0162180797', 'vistaimportexport@hotmail.com', '71 Jalan Jaya, Taman Seri Damai');
+INSERT INTO Supplier VALUES ('N412', 'Celestial Imports Co.', 'General', '01279923598', 'celestialimports@hotmail.com', '307 Lorong Bakti, Kampung Sentosa');
+INSERT INTO Supplier VALUES ('N437', 'Pacific Resources M Sdn', 'Flavouring', '0147296373', 'pacificresources@gmail.com', '99 Jalan Gemilang, Bandar Bahagia');
+INSERT INTO Supplier VALUES ('N450', 'Alpha Enterprise Holdings', 'Seafood', '0164774441', 'alphaenterprise@yahoo.com', '25 Jalan Damai, Kampung Murni');
+INSERT INTO Supplier VALUES ('N475', 'Panorama Merchandisers', 'Dessert', '0317183901', 'panoramamerchandisers@yahoo.com', '74 Jalan Ceria, Kampung Harmoni');
+INSERT INTO Supplier VALUES ('N489', 'GlobalTech Trading', 'General', '01091600397', 'globaltechtrading@yahoo.com', '33 Jalan Permai, Taman Maju');
+INSERT INTO Supplier VALUES ('N498', 'Visionary Procurements', 'General', '0130650836', 'visionaryprocurements@hotmail.com', '3 Jalan Perdana, Taman Mutiara');
+INSERT INTO Supplier VALUES ('N557', 'Tranquil Trading Services', 'Dessert', '01713463493', 'tranquiltrading@gmail.com', '18 Jalan Mutiara, Bandar Maju');
+INSERT INTO Supplier VALUES ('N561', 'Silverline Merchants', 'General', '01507247967', 'silverlinemerchants@yahoo.com', '95 Jalan Merdeka, Kampung Baru');
+INSERT INTO Supplier VALUES ('N569', 'Evergreen Trade Network', 'General', '01196529347', 'evergretradennetwork@hotmail.com', '134 Jalan Cemerlang, Taman Bahagia');
+INSERT INTO Supplier VALUES ('N580', 'Provenance Suppliers', 'General', '0124340379', 'provenancesuppliers@gmail.com', '8 Persiaran Sentosa, Pekan Baru');
+INSERT INTO Supplier VALUES ('N583', 'Infinity Global Procurements', 'General', '0182279705', 'infinityglobalprocurements@yahoo.com', '42 Jalan Jaya, Taman Seri Damai');
+INSERT INTO Supplier VALUES ('N607', 'Top Quality Resources', 'General', '01890466126', 'topqualityresources@yahoo.com', '44 Lorong Bahagia, Pekan Seri');
+INSERT INTO Supplier VALUES ('N609', 'Zenith Sourcing Solutions', 'General', '0170743866', 'zenithsourcingsolutions@yahoo.com', '15 Jalan Cemerlang, Kampung Jaya');
+INSERT INTO Supplier VALUES ('N621', 'Stellar Ventures Sdn Bhd', 'General', '0192513175', 'stellarventures@hotmail.com', '30 Jalan Makmur, Bandar Damai');
+INSERT INTO Supplier VALUES ('N641', 'Harmony Exports Enterprise', 'Western', '01005630176', 'harmonyexportsent@yahoo.com', '77 Jalan Bahagia, Taman Damai');
+INSERT INTO Supplier VALUES ('N698', 'Diamond Merchants Ltd.', 'Meat', '0171763208', 'diamondmerchants@yahoo.com', '12 Lorong Bakti, Kampung Sentosa');
+INSERT INTO Supplier VALUES ('N699', 'Crystal Clear Imports', 'Drinks', '0198556320', 'crystalclearimports@gmail.com', '68 Persiaran Gemilang, Bandar Bahagia');
+INSERT INTO Supplier VALUES ('N717', 'Horizon Holdings Malaysia', 'General', '01882793609', 'horizonholdings@yahoo.com', '234 Jalan Raja, Taman Desa');
+INSERT INTO Supplier VALUES ('N745', 'Quantum Sourcing Solutions', 'General', '08104602791', 'quantumsourcingsolutions@yahoo.com', '45 Jalan Mutiara, Bandar Maju');
+INSERT INTO Supplier VALUES ('N756', 'Prime Source Industries', 'Flavouring', '06387943562', 'primesourceindustries@gmail.com', '22 Jalan Bahagia, Taman Damai');
+INSERT INTO Supplier VALUES ('N793', 'Quantum Supply Chain', 'General', '0169093577', 'quantumsupplychain@yahoo.com', '82 Jalan Bahagia, Kampung Sentosa');
+INSERT INTO Supplier VALUES ('N809', 'Apex Logistics Solutions', 'General', '0196590862', 'apexlogisticssolutions@gmail.com', '67 Jalan Permai, Taman Maju');
+INSERT INTO Supplier VALUES ('N823', 'Mastermind Enterprises', 'General', '0160750220', 'mastermindenterprises@hotmail.com', '9 Jalan Damai, Taman Bahagia');
+INSERT INTO Supplier VALUES ('N838', 'Innovate Industrial Solutions', 'General', '01776354252', 'innovateindustrialsolutions@gmail.com', '37 Jalan Sejahtera, Taman Sejati');
+INSERT INTO Supplier VALUES ('N853', 'Nexus World Traders', 'Meat', '01168193872', 'nexusworldtraders@hotmail.com', '7 Jalan Ceria, Kampung Harmoni');
+INSERT INTO Supplier VALUES ('N880', 'Metro Supplies Malaysia', 'Flavouring', '09138315812', 'metrosupplies@hotmail.com', '56 Persiaran Seri Cemerlang, Bandar Seri Perdana');
+INSERT INTO Supplier VALUES ('N895', 'Prism Materials Group', 'General', '0118626155', 'prismmaterialsgroup@hotmail.com', '150 Persiaran Sentosa, Pekan Baru');
+INSERT INTO Supplier VALUES ('N907', 'Golden Gate Ventures', 'General', '01110488009', 'goldengateventures@hotmail.com', '17 Jalan Ceria, Pekan Maju');
+INSERT INTO Supplier VALUES ('N915', 'Apex Holdings Malaysia', 'General', '01934100878', 'apexholdings@yahoo.com', '54 Persiaran Jaya, Pekan Gemilang');
+INSERT INTO Supplier VALUES ('N924', 'Elite Supplies Sdn Bhd', 'Meat', '0312345678', 'elitesupplies@gmail.com', '123 Jalan Raja, Taman Desa');
+INSERT INTO Supplier VALUES ('N948', 'Noble Ventures Malaysia', 'General', '0746710138', 'nobleventuresmalaysia@gmail.com', '81 Lorong Bahagia, Pekan Seri');
+INSERT INTO Supplier VALUES ('N963', 'Exquisite Global Traders', 'General', '01092108531', 'exquisiteglobaltraders@hotmail.com', '21 Jalan Mutiara, Taman Sentosa');
+INSERT INTO Supplier VALUES ('N970', 'Visionary Holdings', 'General', '0198836365', 'visionaryholdings@yahoo.com', '29 Jalan Damai, Kampung Murni');
+INSERT INTO Supplier VALUES ('N978', 'Spectrum Logistics', 'Flavouring', '0118231375', 'spectrumlogistics@hotmail.com', '63 Jalan Cemerlang, Taman Bahagia');
+INSERT INTO Supplier VALUES ('N985', 'Evergreen Trade Partners', 'General', '0125569308', 'evergreentrade@hotmail.com', '41 Lorong Maju, Taman Sejahtera');
+INSERT INTO Supplier VALUES ('N997', 'Harmony Trading Co.', 'Pastry', '0398765432', 'harmonytrading@yahoo.com', '45 Lorong Sentosa, Pekan Lama');
+
+
+/*Raw Ingredient Data*/
+INSERT INTO Raw_Ingredient VALUES ('I560', 'Drumstick', '120', 'piece', '40');
+INSERT INTO Raw_Ingredient VALUES ('I193', 'Ginger', '200', 'piece', '90');
+INSERT INTO Raw_Ingredient VALUES ('I372', 'Fishchop', '80', 'piece', '20');
+INSERT INTO Raw_Ingredient VALUES ('I261', 'Lobster', '40', 'piece', '15');
+INSERT INTO Raw_Ingredient VALUES ('I267', 'Lemon Cube', '20', 'piece', '10');
+INSERT INTO Raw_Ingredient VALUES ('I001', 'Tomato', '80', 'piece', '40');
+INSERT INTO Raw_Ingredient VALUES ('I999', 'Coconut', '50', 'piece', '20');
+INSERT INTO Raw_Ingredient VALUES ('I123', 'Squid', '20', 'piece', '8');
+INSERT INTO Raw_Ingredient VALUES ('I817', 'Ham', '200', 'slice', '100');
+INSERT INTO Raw_Ingredient VALUES ('I378', 'Cheese', '200', 'slice', '100');
+INSERT INTO Raw_Ingredient VALUES ('I348', 'Pork', '350', 'slice', '180');
+INSERT INTO Raw_Ingredient VALUES ('I472', 'Beef', '350', 'slice', '180');
+INSERT INTO Raw_Ingredient VALUES ('I791', 'Soy Sauce', '30', 'bottle', '10');
+INSERT INTO Raw_Ingredient VALUES ('I362', 'Vinegar', '30', 'bottle', '10');
+INSERT INTO Raw_Ingredient VALUES ('I128', 'Essential Oil', '20', 'bottle', '10');
+INSERT INTO Raw_Ingredient VALUES ('I434', 'Sugar Cane', '40', 'bottle', '15');
+INSERT INTO Raw_Ingredient VALUES ('I628', 'Butter', '30', 'box', '10');
+INSERT INTO Raw_Ingredient VALUES ('I881', 'Ice Cream', '20', 'box', '10');
+INSERT INTO Raw_Ingredient VALUES ('I693', 'Oil', '30', 'bucket', '15');
+INSERT INTO Raw_Ingredient VALUES ('I070', 'Ice', '30', 'bucket', '15');
+INSERT INTO Raw_Ingredient VALUES ('I745', 'Green Bean', '70', 'can', '30');
+INSERT INTO Raw_Ingredient VALUES ('I383', 'Mashed Potato', '70', 'can', '30');
+INSERT INTO Raw_Ingredient VALUES ('I812', 'Milk', '50', 'can', '25');
+INSERT INTO Raw_Ingredient VALUES ('I355', 'Rice', '40', 'bag', '25');
+INSERT INTO Raw_Ingredient VALUES ('I304', 'Noodle', '60', 'bag', '30');
+INSERT INTO Raw_Ingredient VALUES ('I958', 'Flour', '50', 'pack', '25');
+INSERT INTO Raw_Ingredient VALUES ('I007', 'Sugar', '20', 'pack', '8');
+INSERT INTO Raw_Ingredient VALUES ('I950', 'Spices', '25', 'pack', '15');
+INSERT INTO Raw_Ingredient VALUES ('I218', 'Yeast', '30', 'pack', '15');
+INSERT INTO Raw_Ingredient VALUES ('I603', 'Cendol', '80', 'pack', '45');
+INSERT INTO Raw_Ingredient VALUES ('I037', 'Minced Chicken', '100', 'pack', '50');
+INSERT INTO Raw_Ingredient VALUES ('I303', 'Topping', '40', 'pack', '15');
+INSERT INTO Raw_Ingredient VALUES ('I003', 'Oyster', '15', 'pack', '5');
+
+
+/*Menu Data*/
+INSERT INTO Menu VALUES ('D037', 'Kolo Mee', 'Dry noodles tossed in a savoury pork and shallot mixture, topped off with fragrant fried onions.', '8.5', '24/3/2022', 'E001', '');
+INSERT INTO Menu VALUES ('D062', 'Sarawak Laksa', 'Spicy, bright, warming, and full of flavour soup with varoius different sides in bowl.', '12', '12/4/2022', 'E001', 'Spicy');
+INSERT INTO Menu VALUES ('D247', 'Belacan Bihun', 'Rice vermicelli dish served with a shrimp-paste based gravy', '9.9', '29/8/2021', 'E001', ' ');
+INSERT INTO Menu VALUES ('D285', 'Tomato Mee', 'It resembles Kong Fu Chow but features a tangy sweet tomato gravy', '7', '8/9/2022', 'E001', ' ');
+INSERT INTO Menu VALUES ('D906', 'Kueh Chap', 'A mix of Flat Rice Noodles consisting of various pork innards and different parts of pork meats', '10.5', '4/3/2023', 'E001', ' ');
+INSERT INTO Menu VALUES ('D422', 'Mee Sapi', 'A type of Sarawakian chinese origin noodle dish made from springy egg noodles tossed in a vinegar and lard sauce.', '15', '20/7/2021', 'E001', ' ');
+INSERT INTO Menu VALUES ('D677', 'Kampua Mee', 'Dry noodle dish with Foochow origins,', '8.8', '1/8/2022', 'E001', 'Chef Recommendation');
+INSERT INTO Menu VALUES ('D142', 'Nasi Aruk', 'Traditional Sarawak Malay fried rice that does not require oil', '8', '25/12/2021', 'E002', ' ');
+INSERT INTO Menu VALUES ('D105', 'Nasi Goreng Dabai', 'Sarawak unique nasi goreng which no longer just a seasonal dish', '12', '18/1/2023', 'E002', ' ');
+INSERT INTO Menu VALUES ('D650', 'Nasi Briyani', 'A rice-based dish prepared with Indian spices, rice, vegetables, eggs, and usually some type of meat. Its popularity can be attributed to its aromatic flavours and distinctively rich taste.', '14.6', '8/3/2022', 'E002', ' ');
+INSERT INTO Menu VALUES ('D541', 'Nasi Campur', 'Nasi campur, which translates to mixed rice, just in Indonesian version.', '16', '29/3/2023', 'E002', ' ');
+INSERT INTO Menu VALUES ('D255', 'Nasi Ayam Penyet ', 'Fried Chicken dish is served with steamed rice, Tempeh (Fried Soybean cake), Fresh Vegetables and slices of Cucumber.', '18.5', '10/1/2022', 'E002', 'Juicy ');
+INSERT INTO Menu VALUES ('D700', 'Kacang Ma', 'Chicken meat cooked with motherworth herbs. Suitable for health eaters.', '15', '13/6/2022', 'E003', ' ');
+INSERT INTO Menu VALUES ('D794', 'Terung Dayak Soup', 'Terung Dayak is a yellowish fruit with a distinct sour taste, recommend for appertizing before eating.', '13.2', '2/4/2022', 'E003', 'Homemade meatballs');
+INSERT INTO Menu VALUES ('D543', 'Ayam Pansuh', 'Ayam Pansuh (chicken cooked in bamboo), many people are familiar and have tasted the exotic traditional delicacy of the Dayak ethnic group in Sarawak', '24.7', '29/7/2021', 'E003', ' ');
+INSERT INTO Menu VALUES ('D280', 'Tebaloi', 'It made with a combination of sago flour, eggs, desiccated coconut, turmeric, sugar, and various flavorings. ', '16', '2/4/2023', 'E003', 'Hot and spicy');
+INSERT INTO Menu VALUES ('D514', 'Mani Chai wt Eggs', 'Mani Chai is a good source of vitamin K, pro-vitamin A carotenoids, vitamins B, C, protein and minerals. Mani Chai is also known as sayur manis or sweet leaf', '12.5', '26/3/2023', 'E003', ' ');
+INSERT INTO Menu VALUES ('D767', 'Teh C Special', 'Teh C Special is made of four simple ingredients: ice, red tea, evaporated milk, and gula apong.', '13.5', '21/12/2022', 'E004', ' ');
+INSERT INTO Menu VALUES ('D090', 'Lassi', 'A popular yoghurt drink originating from the Indian subcontinent, A popular yoghurt drink originating from the Indian subcontinent,', '16', '18/11/2022', 'E004', ' ');
+INSERT INTO Menu VALUES ('D464', 'Kedondong Juice', 'The Kedondong is a tropical fruit that made into preserves and flavorings for sauces, soups, braised and stews.', '12.5', '22/4/2022', 'E004', ' ');
+INSERT INTO Menu VALUES ('D688', 'Hot Buttered Milk Coffee', 'Deliciously roasted local coffee beans from Sarawak, brewed with condensed and evaporated milk, flavored with a knob of butter.', '11', '20/2/2023', 'E004', ' ');
+INSERT INTO Menu VALUES ('D747', 'Sugar Cane wt Coconut', 'A mix of them make the summer cool ', '17.6', '20/12/2022', 'E004', 'Best seller');
+INSERT INTO Menu VALUES ('D962', 'Kek Lapis', 'A dessert that take up eight hours to complete and finished looked different pattern inside.', '12', '3/1/2022', 'E005', ' ');
+INSERT INTO Menu VALUES ('D367', 'Ais Krim Bergula Apong', 'Ice Cream Gula Apong is made using nipah palm sugar, or gula apong, which is one of Sarawaks specialty natural sugars. Aromatic and rich in flavour.', '13.9', '25/11/2022', 'E005', 'Must try');
+INSERT INTO Menu VALUES ('D050', 'Dabai', 'Also known as the Sarawakian olive, Dabai is a seasonal fruit and usually eaten seasoned with salt for a savoury flavour, or with sugar and a bit of soy sauce.', '15', '4/9/2021', 'E005', ' ');
+INSERT INTO Menu VALUES ('D337', 'Kompia', 'The Kompia is the Sibus most famous bun. Recommeded consume fresh from the coal oven as seen.', '18.9', '8/5/2023', 'E005', ' ');
+INSERT INTO Menu VALUES ('D942', 'Sio Bee', 'Kuchings version of siu mai but it only contains pork, no shrimp or pork.', '17', '2/6/2022', 'E005', ' ');
+INSERT INTO Menu VALUES ('D898', 'Cendol', 'Cendol is an iced sweet dessert that contains droplets of green rice flour jelly, coconut milk and palm sugar syrup.', '12', '15/1/2022', 'E005', ' ');
+INSERT INTO Menu VALUES ('D651', 'Ikan Bakar', 'Freshest choices of fish grilled to crisp perfection and served with either a spicy sambal or spicy soy sauce.', '40.8', '25/5/2022', 'E006', 'Fresh catch');
+INSERT INTO Menu VALUES ('D317', 'Ikan Terubuk Masin', 'Deep fried of salted fish served with slices of chili and calamansi lime.', '32.5', '28/7/2021', 'E006', ' ');
+INSERT INTO Menu VALUES ('D647', 'Sotong Penyet', 'Squid version of Ayam Penyet, and is usually served with the same sides and rice.', '70', '6/10/2022', 'E006', ' ');
+INSERT INTO Menu VALUES ('D165', 'Umai', 'Popular traditional native dish of the Melanau people in Sarawak', '54.1', '29/7/2022', 'E006', ' ');
+INSERT INTO Menu VALUES ('D840', 'Fried Oyster Pancake', 'Big and brown oyster fried with pancake to increase the taste', '28.8', '28/2/2022', 'E006', ' ');
+INSERT INTO Menu VALUES ('D900', 'Steamed Lobster', 'Lobster in Boston grown huge and juicy, steamed had kept its fresh meat, cooked with some ginger and coriander only!', '180.7', '2/7/2022', 'E006', 'High rate');
+INSERT INTO Menu VALUES ('D542', 'Kolo Mee wt Teh C', 'A saver set lunch for yours to try our chefs special.', '16.5', '7/6/2023', 'E007', 'Great Value');
+INSERT INTO Menu VALUES ('D911', 'Mee Sapi wt Teh C', 'Mee sapi served with sweety teh c with reasonable price.x', '19', '7/8/2023', 'E007', ' ');
+INSERT INTO Menu VALUES ('D281', 'Nasi Aruk wt Lassi', 'First choice to healthy customers to eat non-fried rice.', '14', '4/12/2022', 'E007', ' ');
+INSERT INTO Menu VALUES ('D198', 'Nasi Briyani wt Kek Lapis', 'Nasi Briyani lover must try, kek lapis would not dissapoint you.', '20', '15/2/2022', 'E007', 'Popularity');
+INSERT INTO Menu VALUES ('D335', 'Ikan Bakar wt Cendol', 'Do not wait to try the only one seafood set with cheap price.', '46.8', '10/1/2021', 'E007', ' ');
+INSERT INTO Menu VALUES ('D021', 'Croisssant', 'A laminated, yeast-leavened bakery product that contains dough/roll-in fat layers to create a flaky, crispy texture. ', '8.5', '7/1/2023', 'E008', 'Must try');
+INSERT INTO Menu VALUES ('D124', 'Bagel', 'Doughnut-shaped yeast-leavened roll that is characterized by a crisp, shiny crust and a dense interior.', '7', '24/1/2023', 'E008', ' ');
+INSERT INTO Menu VALUES ('D094', 'Roti Kelapa', 'Circle shaped bun filled with fully shredded coconut.', '6', '29/4/2023', 'E008', ' ');
+INSERT INTO Menu VALUES ('D993', 'Roti Planta', 'Planta smeared on the roti canai to increase its smell and taste.', '4.5', '14/8/2022', 'E008', ' ');
+INSERT INTO Menu VALUES ('D832', 'Doughnut', 'Donut typically ring shaped with a hole in the middle, topping with some sugar and flour.', '5', '28/11/2021', 'E008', 'Sweet');
+
+
+/*Menu-Ingredient Data*/
+INSERT INTO Menu_Ingredient_List VALUES ('D280', 'I001', '3', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D285', 'I001', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D317', 'I001', '2', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D840', 'I003', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D094', 'I007', '0.5', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D255', 'I007', '0.2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D285', 'I007', '0.3', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D367', 'I007', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D794', 'I007', '0.5', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D832', 'I007', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I037', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D942', 'I037', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D090', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I070', '0.7', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D464', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D542', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D688', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D747', 'I070', '0.5', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D767', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D898', 'I070', '0.7', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D911', 'I070', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D647', 'I123', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I128', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D247', 'I128', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D464', 'I128', '2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D514', 'I128', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D165', 'I193', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I193', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D543', 'I193', '5', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D650', 'I193', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D021', 'I218', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D094', 'I218', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D124', 'I218', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D832', 'I218', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D942', 'I218', '0.3', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D993', 'I218', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D900', 'I261', '2', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I267', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D543', 'I267', '2', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D651', 'I267', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D900', 'I267', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D090', 'I303', '0.5', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I303', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D367', 'I303', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D898', 'I303', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D037', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I304', '0.1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D247', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D285', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D422', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D542', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D677', 'I304', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D906', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D911', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D942', 'I304', '1', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I348', '5', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I348', '3', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D285', 'I348', '5', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D541', 'I348', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D650', 'I348', '3', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I355', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I355', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I355', '0.5', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D255', 'I355', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I355', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D541', 'I355', '0.3', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D650', 'I355', '0.5', 'bag');
+INSERT INTO Menu_Ingredient_List VALUES ('D165', 'I372', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D280', 'I372', '2', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D317', 'I372', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I372', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D651', 'I372', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D900', 'I378', '3', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I383', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I383', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D255', 'I383', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I383', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D337', 'I383', '2', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D747', 'I434', '1', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I472', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I472', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I472', '3', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I472', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D422', 'I472', '6', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D514', 'I472', '15', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D541', 'I472', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D650', 'I472', '3', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D906', 'I472', '6', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D911', 'I472', '6', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D037', 'I560', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D542', 'I560', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D543', 'I560', '3', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D700', 'I560', '2', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D255', 'I560', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D794', 'I560', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I603', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D898', 'I603', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D317', 'I628', '0.5', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D677', 'I628', '0.4', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D688', 'I628', '0.5', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D900', 'I628', '1', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D993', 'I628', '0.5', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I693', '0.5', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D541', 'I693', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D647', 'I693', '0.8', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D651', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D677', 'I693', '0.2', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D840', 'I693', '0.8', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D906', 'I693', '0.3', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D962', 'I693', '0.5', 'bucket');
+INSERT INTO Menu_Ingredient_List VALUES ('D050', 'I745', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I745', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I745', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I745', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D794', 'I745', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D105', 'I791', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D142', 'I791', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D281', 'I791', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D514', 'I791', '0.3', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D906', 'I791', '0.2', 'bottle');
+INSERT INTO Menu_Ingredient_List VALUES ('D090', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D335', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D367', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D542', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D688', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D747', 'I812', '0.5', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D767', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D898', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D911', 'I812', '1', 'can');
+INSERT INTO Menu_Ingredient_List VALUES ('D037', 'I817', '1', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D062', 'I817', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D247', 'I817', '1', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D541', 'I817', '2', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D542', 'I817', '1', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D677', 'I817', '1', 'slice');
+INSERT INTO Menu_Ingredient_List VALUES ('D050', 'I881', '0.5', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D367', 'I881', '0.5', 'box');
+INSERT INTO Menu_Ingredient_List VALUES ('D247', 'I950', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D794', 'I950', '0.4', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D021', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D094', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D124', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D198', 'I958', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D647', 'I958', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D700', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D832', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D840', 'I958', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D942', 'I958', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D962', 'I958', '1', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D993', 'I958', '2', 'pack');
+INSERT INTO Menu_Ingredient_List VALUES ('D094', 'I999', '1', 'piece');
+INSERT INTO Menu_Ingredient_List VALUES ('D747', 'I999', '1', 'piece');
+
+
+
+/*Supplier-Ingredient Data*/
+INSERT INTO Supplier_Ingredient_List VALUES ('N030', 'I372', '602', 'piece', '18');
+INSERT INTO Supplier_Ingredient_List VALUES ('N030', 'I261', '365', 'piece', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N030', 'I267', '837', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N049', 'I261', '855', 'piece', '60');
+INSERT INTO Supplier_Ingredient_List VALUES ('N049', 'I378', '542', 'slice', '0.03');
+INSERT INTO Supplier_Ingredient_List VALUES ('N049', 'I383', '670', 'can', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N089', 'I628', '403', 'box', '7.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N089', 'I881', '637', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N089', 'I603', '491', 'pack', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N089', 'I362', '858', 'bottle', '20');
+INSERT INTO Supplier_Ingredient_List VALUES ('N089', 'I070', '207', 'bucket', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I950', '569', 'pack', '11.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I218', '561', 'pack', '2.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I603', '703', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I378', '864', 'slice', '0.04');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I001', '650', 'piece', '1');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I999', '296', 'piece', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N091', 'I123', '453', 'piece', '46');
+INSERT INTO Supplier_Ingredient_List VALUES ('N111', 'I958', '815', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N111', 'I007', '270', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N111', 'I070', '336', 'bucket', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N148', 'I628', '904', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N148', 'I434', '580', 'bottle', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N148', 'I001', '508', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N148', 'I999', '564', 'piece', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N166', 'I958', '868', 'pack', '4.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N166', 'I007', '384', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N166', 'I003', '717', 'pack', '28');
+INSERT INTO Supplier_Ingredient_List VALUES ('N166', 'I745', '944', 'can', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N166', 'I348', '334', 'slice', '0.04');
+INSERT INTO Supplier_Ingredient_List VALUES ('N214', 'I362', '850', 'bottle', '16');
+INSERT INTO Supplier_Ingredient_List VALUES ('N214', 'I304', '816', 'bag', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N214', 'I603', '524', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I817', '638', 'slice', '0.01');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I378', '799', 'slice', '0.03');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I348', '394', 'slice', '0.07');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I472', '516', 'slice', '0.09');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I958', '396', 'pack', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I007', '875', 'pack', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I950', '255', 'pack', '14');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I218', '745', 'pack', '1.7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I812', '837', 'can', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I070', '414', 'bucket', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N228', 'I001', '889', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I128', '941', 'bottle', '33');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I434', '470', 'bottle', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I383', '930', 'can', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I812', '634', 'can', '10');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I218', '618', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I603', '377', 'pack', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I560', '437', 'piece', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I193', '706', 'piece', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I372', '889', 'piece', '40');
+INSERT INTO Supplier_Ingredient_List VALUES ('N263', 'I261', '419', 'piece', '65');
+INSERT INTO Supplier_Ingredient_List VALUES ('N269', 'I001', '787', 'piece', '1');
+INSERT INTO Supplier_Ingredient_List VALUES ('N269', 'I999', '227', 'piece', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N269', 'I123', '263', 'piece', '30');
+INSERT INTO Supplier_Ingredient_List VALUES ('N286', 'I693', '380', 'bucket', '31');
+INSERT INTO Supplier_Ingredient_List VALUES ('N286', 'I070', '680', 'bucket', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N341', 'I950', '716', 'pack', '10');
+INSERT INTO Supplier_Ingredient_List VALUES ('N412', 'I193', '724', 'piece', '1.2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N412', 'I372', '924', 'piece', '32');
+INSERT INTO Supplier_Ingredient_List VALUES ('N412', 'I218', '526', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N412', 'I603', '307', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N437', 'I007', '610', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N437', 'I950', '432', 'pack', '16');
+INSERT INTO Supplier_Ingredient_List VALUES ('N437', 'I362', '673', 'bottle', '17');
+INSERT INTO Supplier_Ingredient_List VALUES ('N450', 'I372', '912', 'piece', '27');
+INSERT INTO Supplier_Ingredient_List VALUES ('N450', 'I261', '823', 'piece', '80');
+INSERT INTO Supplier_Ingredient_List VALUES ('N450', 'I123', '205', 'piece', '47');
+INSERT INTO Supplier_Ingredient_List VALUES ('N475', 'I745', '617', 'can', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N475', 'I603', '376', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N475', 'I303', '530', 'pack', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I791', '669', 'bottle', '15');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I362', '624', 'bottle', '23');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I128', '770', 'bottle', '34');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I434', '276', 'bottle', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I745', '293', 'can', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I383', '492', 'can', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I812', '760', 'can', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I001', '427', 'piece', '1');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I999', '245', 'piece', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I950', '718', 'pack', '11');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I218', '358', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N489', 'I355', '380', 'bag', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N498', 'I603', '518', 'pack', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N498', 'I037', '643', 'pack', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N498', 'I303', '306', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N557', 'I628', '903', 'box', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N557', 'I881', '880', 'box', '9.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N557', 'I693', '528', 'bucket', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N557', 'I070', '589', 'bucket', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I193', '387', 'piece', '1.2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I372', '616', 'piece', '30');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I261', '818', 'piece', '63');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I267', '368', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I001', '501', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I128', '725', 'bottle', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I383', '913', 'can', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N561', 'I881', '570', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I603', '926', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I037', '698', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I303', '869', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I003', '810', 'pack', '45');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I128', '201', 'bottle', '45');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I434', '237', 'bottle', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I628', '212', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N569', 'I881', '259', 'box', '10');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I355', '866', 'bag', '25');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I304', '476', 'bag', '4.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I218', '693', 'pack', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I603', '935', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I693', '609', 'bucket', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I070', '214', 'bucket', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I628', '710', 'box', '8.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I881', '648', 'box', '9.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I348', '636', 'slice', '0.07');
+INSERT INTO Supplier_Ingredient_List VALUES ('N580', 'I472', '933', 'slice', '1');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I070', '806', 'bucket', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I628', '697', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I881', '502', 'box', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I348', '284', 'slice', '0.09');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I472', '494', 'slice', '0.09');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I603', '412', 'pack', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I037', '885', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I303', '270', 'pack', '7');
+INSERT INTO Supplier_Ingredient_List VALUES ('N583', 'I003', '853', 'pack', '34');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I560', '597', 'piece', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I193', '491', 'piece', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I372', '535', 'piece', '27');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I261', '749', 'piece', '57');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I267', '635', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I001', '473', 'piece', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I999', '849', 'piece', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I123', '277', 'piece', '41');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I817', '209', 'slice', '0.01');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I378', '493', 'slice', '0.03');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I348', '477', 'slice', '0.07');
+INSERT INTO Supplier_Ingredient_List VALUES ('N607', 'I472', '759', 'slice', '0.09');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I218', '694', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I603', '599', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I037', '648', 'pack', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I303', '387', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I003', '466', 'pack', '30');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I304', '884', 'bag', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N609', 'I745', '858', 'can', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N621', 'I628', '349', 'box', '10');
+INSERT INTO Supplier_Ingredient_List VALUES ('N621', 'I881', '684', 'box', '10');
+INSERT INTO Supplier_Ingredient_List VALUES ('N621', 'I693', '450', 'bucket', '30');
+INSERT INTO Supplier_Ingredient_List VALUES ('N641', 'I817', '212', 'slice', '0.02');
+INSERT INTO Supplier_Ingredient_List VALUES ('N641', 'I378', '416', 'slice', '0.02');
+INSERT INTO Supplier_Ingredient_List VALUES ('N698', 'I348', '594', 'slice', '0.07');
+INSERT INTO Supplier_Ingredient_List VALUES ('N698', 'I472', '452', 'slice', '0.06');
+INSERT INTO Supplier_Ingredient_List VALUES ('N717', 'I070', '946', 'bucket', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N745', 'I958', '244', 'pack', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N745', 'I007', '678', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N745', 'I950', '710', 'pack', '12');
+INSERT INTO Supplier_Ingredient_List VALUES ('N745', 'I628', '430', 'box', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N756', 'I791', '307', 'bottle', '15');
+INSERT INTO Supplier_Ingredient_List VALUES ('N756', 'I362', '757', 'bottle', '20');
+INSERT INTO Supplier_Ingredient_List VALUES ('N756', 'I128', '229', 'bottle', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N793', 'I267', '590', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N793', 'I001', '311', 'piece', '1');
+INSERT INTO Supplier_Ingredient_List VALUES ('N793', 'I193', '745', 'piece', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N809', 'I628', '392', 'box', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N809', 'I881', '302', 'box', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N823', 'I745', '803', 'can', '3.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N823', 'I218', '905', 'pack', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N823', 'I560', '262', 'piece', '4.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N823', 'I355', '931', 'bag', '28');
+INSERT INTO Supplier_Ingredient_List VALUES ('N823', 'I037', '780', 'pack', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N838', 'I950', '460', 'pack', '12');
+INSERT INTO Supplier_Ingredient_List VALUES ('N838', 'I628', '502', 'box', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N838', 'I791', '940', 'bottle', '12');
+INSERT INTO Supplier_Ingredient_List VALUES ('N853', 'I003', '256', 'pack', '30');
+INSERT INTO Supplier_Ingredient_List VALUES ('N853', 'I560', '731', 'piece', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N853', 'I193', '610', 'piece', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N880', 'I193', '267', 'piece', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N880', 'I362', '294', 'bottle', '40');
+INSERT INTO Supplier_Ingredient_List VALUES ('N880', 'I128', '544', 'bottle', '35');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I628', '873', 'box', '12');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I881', '881', 'box', '15');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I693', '292', 'bucket', '40');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I303', '693', 'pack', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I003', '645', 'pack', '48');
+INSERT INTO Supplier_Ingredient_List VALUES ('N895', 'I791', '403', 'bottle', '16');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I472', '749', 'slice', '0.08');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I070', '674', 'bucket', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I958', '863', 'pack', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I007', '855', 'pack', '2');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I950', '855', 'pack', '17');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I628', '425', 'box', '5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I791', '560', 'bottle', '13');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I362', '480', 'bottle', '15');
+INSERT INTO Supplier_Ingredient_List VALUES ('N907', 'I003', '873', 'pack', '29');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I560', '908', 'piece', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I193', '321', 'piece', '0.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I812', '423', 'can', '7.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I355', '654', 'bag', '26');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I304', '510', 'bag', '4.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I628', '269', 'box', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N915', 'I881', '795', 'box', '9.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N924', 'I378', '717', 'slice', '0.02');
+INSERT INTO Supplier_Ingredient_List VALUES ('N924', 'I472', '512', 'slice', '0.06');
+INSERT INTO Supplier_Ingredient_List VALUES ('N924', 'I193', '597', 'piece', '1.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N924', 'I372', '461', 'piece', '25');
+INSERT INTO Supplier_Ingredient_List VALUES ('N948', 'I603', '343', 'pack', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N948', 'I037', '654', 'pack', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N948', 'I812', '212', 'can', '8');
+INSERT INTO Supplier_Ingredient_List VALUES ('N963', 'I355', '595', 'bag', '28');
+INSERT INTO Supplier_Ingredient_List VALUES ('N963', 'I304', '764', 'bag', '3');
+INSERT INTO Supplier_Ingredient_List VALUES ('N963', 'I362', '814', 'bottle', '16');
+INSERT INTO Supplier_Ingredient_List VALUES ('N970', 'I128', '400', 'bottle', '32');
+INSERT INTO Supplier_Ingredient_List VALUES ('N970', 'I472', '298', 'slice', '0.09');
+INSERT INTO Supplier_Ingredient_List VALUES ('N970', 'I123', '825', 'piece', '45');
+INSERT INTO Supplier_Ingredient_List VALUES ('N978', 'I791', '385', 'bottle', '14');
+INSERT INTO Supplier_Ingredient_List VALUES ('N985', 'I745', '706', 'can', '2.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N985', 'I383', '254', 'can', '2.5');
+INSERT INTO Supplier_Ingredient_List VALUES ('N997', 'I958', '394', 'pack', '6');
+INSERT INTO Supplier_Ingredient_List VALUES ('N997', 'I007', '880', 'pack', '4');
+INSERT INTO Supplier_Ingredient_List VALUES ('N997', 'I693', '754', 'bucket', '38');
+
+
+
+/*Requisition Purchase Data*/
+INSERT INTO Requisition_Purchase VALUES ('L018', 'M030', '15/9/2020', 'N412', 'Paid', '4', '1945');
+INSERT INTO Requisition_Purchase VALUES ('L019', 'M056', '1/10/2020', 'N895', 'Paid', '4', '2391');
+INSERT INTO Requisition_Purchase VALUES ('L133', 'M813', '27/10/2020', 'N621', 'Paid', '3', '500');
+INSERT INTO Requisition_Purchase VALUES ('L168', 'M871', '6/11/2020', 'N907', 'Paid', '6', '924');
+INSERT INTO Requisition_Purchase VALUES ('L174', 'M813', '1/1/2021', 'N263', 'Paid', '5', '1430');
+INSERT INTO Requisition_Purchase VALUES ('L178', 'M813', '2/1/2021', 'N263', 'Paid', '6', '2782.5');
+INSERT INTO Requisition_Purchase VALUES ('L197', 'M030', '5/1/2021', 'N580', 'Paid', '4', '1650');
+INSERT INTO Requisition_Purchase VALUES ('L202', 'M056', '2/3/2021', 'N148', 'Paid', '4', '390');
+INSERT INTO Requisition_Purchase VALUES ('L228', 'M030', '18/03/2021', 'N489', 'Paid', '5', '1125');
+INSERT INTO Requisition_Purchase VALUES ('L241', 'M813', '20/03/2021', 'N698', 'Paid', '10', '1824.5');
+INSERT INTO Requisition_Purchase VALUES ('L274', 'M813', '30/04/2021', 'N580', 'Paid', '7', '1932');
+INSERT INTO Requisition_Purchase VALUES ('L286', 'M030', '9/5/2021', 'N609', 'Paid', '6', '1570');
+INSERT INTO Requisition_Purchase VALUES ('L289', 'M813', '19/06/2021', 'N580', 'Paid', '10', '3562.85');
+INSERT INTO Requisition_Purchase VALUES ('L294', 'M030', '3/7/2021', 'N091', 'Paid', '7', '1915.5');
+INSERT INTO Requisition_Purchase VALUES ('L296', 'M030', '11/7/2021', 'N583', 'Paid', '9', '1477.72');
+INSERT INTO Requisition_Purchase VALUES ('L298', 'M030', '27/07/2021', 'N607', 'Paid', '6', '901.5');
+INSERT INTO Requisition_Purchase VALUES ('L343', 'M030', '18/08/2021', 'N091', 'Paid', '6', '737');
+INSERT INTO Requisition_Purchase VALUES ('L346', 'M056', '4/9/2021', 'N228', 'Paid', '9', '773.72');
+INSERT INTO Requisition_Purchase VALUES ('L355', 'M056', '6/9/2021', 'N907', 'Paid', '8', '1397');
+INSERT INTO Requisition_Purchase VALUES ('L382', 'M813', '7/9/2021', 'N437', 'Paid', '1', '170');
+INSERT INTO Requisition_Purchase VALUES ('L397', 'M030', '17/09/2021', 'N607', 'Paid', '8', '2190.3');
+INSERT INTO Requisition_Purchase VALUES ('L423', 'M030', '25/09/2021', 'N915', 'Paid', '3', '1097.5');
+INSERT INTO Requisition_Purchase VALUES ('L427', 'M056', '30/09/2021', 'N148', 'Paid', '4', '242.5');
+INSERT INTO Requisition_Purchase VALUES ('L431', 'M813', '4/10/2021', 'N263', 'Paid', '9', '4360');
+INSERT INTO Requisition_Purchase VALUES ('L434', 'M813', '17/11/2021', 'N915', 'Paid', '7', '1561');
+INSERT INTO Requisition_Purchase VALUES ('L438', 'M071', '13/01/2022', 'N569', 'Paid', '2', '504');
+INSERT INTO Requisition_Purchase VALUES ('L456', 'M067', '7/2/2022', 'N609', 'Paid', '5', '1760');
+INSERT INTO Requisition_Purchase VALUES ('L526', 'M740', '20/02/2022', 'N569', 'Paid', '7', '1016');
+INSERT INTO Requisition_Purchase VALUES ('L529', 'M521', '1/3/2022', 'N166', 'Paid', '5', '430.5');
+INSERT INTO Requisition_Purchase VALUES ('L538', 'M740', '9/3/2022', 'N489', 'Paid', '5', '785');
+INSERT INTO Requisition_Purchase VALUES ('L559', 'M740', '8/4/2022', 'N915', 'Paid', '4', '736.5');
+INSERT INTO Requisition_Purchase VALUES ('L602', 'M813', '15/04/2022', 'N583', 'Paid', '4', '1365');
+INSERT INTO Requisition_Purchase VALUES ('L608', 'M813', '28/05/2022', 'N557', 'Paid', '4', '875');
+INSERT INTO Requisition_Purchase VALUES ('L629', 'M813', '27/06/2022', 'N745', 'Paid', '4', '634');
+INSERT INTO Requisition_Purchase VALUES ('L650', 'M521', '7/7/2022', 'N907', 'Paid', '6', '446');
+INSERT INTO Requisition_Purchase VALUES ('L697', 'M741', '17/07/2022', 'N148', 'Paid', '4', '337.5');
+INSERT INTO Requisition_Purchase VALUES ('L736', 'M521', '28/07/2022', 'N561', 'Paid', '2', '2850');
+INSERT INTO Requisition_Purchase VALUES ('L749', 'M741', '30/07/2022', 'N489', 'Paid', '4', '602.5');
+INSERT INTO Requisition_Purchase VALUES ('L780', 'M741', '24/08/2022', 'N489', 'Paid', '4', '815');
+INSERT INTO Requisition_Purchase VALUES ('L781', 'M813', '2/10/2022', 'N489', 'Paid', '4', '2305');
+INSERT INTO Requisition_Purchase VALUES ('L852', 'M740', '11/11/2022', 'N915', 'Paid', '6', '1437.5');
+INSERT INTO Requisition_Purchase VALUES ('L872', 'M488', '10/1/2023', 'N557', 'Unpaid', '4', '852.5');
+INSERT INTO Requisition_Purchase VALUES ('L889', 'M346', '14/01/2023', 'N745', 'Unpaid', '3', '550');
+INSERT INTO Requisition_Purchase VALUES ('L891', 'M346', '26/02/2023', 'N569', 'Paid', '3', '1425');
+INSERT INTO Requisition_Purchase VALUES ('L910', 'M142', '2/4/2023', 'N263', 'Paid', '9', '2857.5');
+INSERT INTO Requisition_Purchase VALUES ('L912', 'M696', '17/05/2023', 'N915', 'Unpaid', '7', '2191.5');
+INSERT INTO Requisition_Purchase VALUES ('L919', 'M741', '27/05/2023', 'N286', 'Unpaid', '2', '895');
+INSERT INTO Requisition_Purchase VALUES ('L931', 'M696', '24/06/2023', 'N263', 'Paid', '9', '3119');
+INSERT INTO Requisition_Purchase VALUES ('L988', 'M521', '13/07/2023', 'N030', 'Paid', '3', '1362.5');
+INSERT INTO Requisition_Purchase VALUES ('L992', 'M030', '14/08/2023', 'N607', 'Unpaid', '9', '1023.1');
+
+
+
+/*Requisition List Data*/
+INSERT INTO Requisition_List VALUES ('L018', 'I193', '150', 'piece', '1.2', '180');
+INSERT INTO Requisition_List VALUES ('L018', 'I372', '45', 'piece', '32', '1440');
+INSERT INTO Requisition_List VALUES ('L018', 'I218', '30', 'pack', '1.5', '45');
+INSERT INTO Requisition_List VALUES ('L018', 'I603', '70', 'pack', '4', '280');
+INSERT INTO Requisition_List VALUES ('L019', 'I881', '25', 'box', '15', '375');
+INSERT INTO Requisition_List VALUES ('L019', 'I693', '30', 'bucket', '40', '1200');
+INSERT INTO Requisition_List VALUES ('L019', 'I303', '30', 'pack', '8', '240');
+INSERT INTO Requisition_List VALUES ('L019', 'I003', '12', 'pack', '48', '576');
+INSERT INTO Requisition_List VALUES ('L133', 'I628', '20', 'box', '10', '200');
+INSERT INTO Requisition_List VALUES ('L133', 'I881', '15', 'box', '10', '150');
+INSERT INTO Requisition_List VALUES ('L133', 'I693', '5', 'bucket', '30', '150');
+INSERT INTO Requisition_List VALUES ('L168', 'I472', '250', 'slice', '0.08', '20');
+INSERT INTO Requisition_List VALUES ('L168', 'I070', '25', 'bucket', '5', '125');
+INSERT INTO Requisition_List VALUES ('L168', 'I958', '35', 'pack', '3', '105');
+INSERT INTO Requisition_List VALUES ('L168', 'I007', '12', 'pack', '2', '24');
+INSERT INTO Requisition_List VALUES ('L168', 'I950', '25', 'pack', '17', '425');
+INSERT INTO Requisition_List VALUES ('L168', 'I362', '15', 'bottle', '15', '225');
+INSERT INTO Requisition_List VALUES ('L174', 'I128', '15', 'bottle', '33', '495');
+INSERT INTO Requisition_List VALUES ('L174', 'I434', '25', 'bottle', '3', '375');
+INSERT INTO Requisition_List VALUES ('L174', 'I383', '45', 'can', '4', '180');
+INSERT INTO Requisition_List VALUES ('L174', 'I812', '35', 'can', '10', '350');
+INSERT INTO Requisition_List VALUES ('L174', 'I218', '20', 'pack', '1.5', '30');
+INSERT INTO Requisition_List VALUES ('L178', 'I218', '15', 'pack', '1.5', '22.5');
+INSERT INTO Requisition_List VALUES ('L178', 'I603', '15', 'pack', '3', '45');
+INSERT INTO Requisition_List VALUES ('L178', 'I560', '60', 'piece', '7', '420');
+INSERT INTO Requisition_List VALUES ('L178', 'I193', '60', 'piece', '2', '120');
+INSERT INTO Requisition_List VALUES ('L178', 'I372', '30', 'piece', '40', '1200');
+INSERT INTO Requisition_List VALUES ('L178', 'I261', '15', 'piece', '65', '975');
+INSERT INTO Requisition_List VALUES ('L197', 'I693', '20', 'bucket', '35', '700');
+INSERT INTO Requisition_List VALUES ('L197', 'I070', '35', 'bucket', '3.5', '122.5');
+INSERT INTO Requisition_List VALUES ('L197', 'I355', '25', 'bag', '25', '625');
+INSERT INTO Requisition_List VALUES ('L197', 'I304', '45', 'bag', '4.5', '202.5');
+INSERT INTO Requisition_List VALUES ('L202', 'I628', '15', 'box', '7', '105');
+INSERT INTO Requisition_List VALUES ('L202', 'I434', '25', 'bottle', '3', '75');
+INSERT INTO Requisition_List VALUES ('L202', 'I001', '60', 'piece', '0.5', '30');
+INSERT INTO Requisition_List VALUES ('L202', 'I999', '45', 'piece', '4', '180');
+INSERT INTO Requisition_List VALUES ('L228', 'I128', '15', 'bottle', '34', '510');
+INSERT INTO Requisition_List VALUES ('L228', 'I434', '10', 'bottle', '1.5', '15');
+INSERT INTO Requisition_List VALUES ('L228', 'I745', '80', 'can', '3', '240');
+INSERT INTO Requisition_List VALUES ('L228', 'I383', '40', 'can', '3', '120');
+INSERT INTO Requisition_List VALUES ('L228', 'I812', '30', 'can', '8', '240');
+INSERT INTO Requisition_List VALUES ('L241', 'I261', '10', 'piece', '57', '570');
+INSERT INTO Requisition_List VALUES ('L241', 'I267', '10', 'piece', '0.5', '5');
+INSERT INTO Requisition_List VALUES ('L241', 'I001', '55', 'piece', '2', '110');
+INSERT INTO Requisition_List VALUES ('L241', 'I999', '35', 'piece', '3', '105');
+INSERT INTO Requisition_List VALUES ('L241', 'I123', '12', 'piece', '41', '492');
+INSERT INTO Requisition_List VALUES ('L241', 'I817', '250', 'slice', '0.01', '2.5');
+INSERT INTO Requisition_List VALUES ('L241', 'I378', '250', 'slice', '0.03', '7.5');
+INSERT INTO Requisition_List VALUES ('L241', 'I348', '300', 'slice', '0.07', '21');
+INSERT INTO Requisition_List VALUES ('L241', 'I472', '350', 'slice', '0.09', '31.5');
+INSERT INTO Requisition_List VALUES ('L241', 'I560', '80', 'piece', '6', '480');
+INSERT INTO Requisition_List VALUES ('L274', 'I304', '45', 'bag', '4.5', '202.5');
+INSERT INTO Requisition_List VALUES ('L274', 'I218', '25', 'pack', '2', '50');
+INSERT INTO Requisition_List VALUES ('L274', 'I603', '60', 'pack', '4', '240');
+INSERT INTO Requisition_List VALUES ('L274', 'I693', '25', 'bucket', '35', '875');
+INSERT INTO Requisition_List VALUES ('L274', 'I070', '40', 'bucket', '3.5', '140');
+INSERT INTO Requisition_List VALUES ('L274', 'I628', '22', 'box', '8.5', '187');
+INSERT INTO Requisition_List VALUES ('L274', 'I881', '25', 'box', '9.5', '237.5');
+INSERT INTO Requisition_List VALUES ('L286', 'I603', '20', 'pack', '5', '100');
+INSERT INTO Requisition_List VALUES ('L286', 'I037', '60', 'pack', '6', '360');
+INSERT INTO Requisition_List VALUES ('L286', 'I303', '55', 'pack', '5', '275');
+INSERT INTO Requisition_List VALUES ('L286', 'I003', '15', 'pack', '30', '450');
+INSERT INTO Requisition_List VALUES ('L286', 'I304', '55', 'bag', '5', '275');
+INSERT INTO Requisition_List VALUES ('L286', 'I745', '55', 'can', '2', '110');
+INSERT INTO Requisition_List VALUES ('L289', 'I355', '55', 'bag', '25', '1375');
+INSERT INTO Requisition_List VALUES ('L289', 'I304', '55', 'bag', '4.5', '247.5');
+INSERT INTO Requisition_List VALUES ('L289', 'I218', '25', 'pack', '2', '50');
+INSERT INTO Requisition_List VALUES ('L289', 'I603', '55', 'pack', '4', '220');
+INSERT INTO Requisition_List VALUES ('L289', 'I693', '25', 'bucket', '35', '875');
+INSERT INTO Requisition_List VALUES ('L289', 'I070', '45', 'bucket', '3.5', '157.5');
+INSERT INTO Requisition_List VALUES ('L289', 'I628', '15', 'box', '8.5', '127.5');
+INSERT INTO Requisition_List VALUES ('L289', 'I881', '25', 'box', '9.5', '237.5');
+INSERT INTO Requisition_List VALUES ('L289', 'I348', '255', 'slice', '0.07', '17.85');
+INSERT INTO Requisition_List VALUES ('L289', 'I472', '255', 'slice', '1', '255');
+INSERT INTO Requisition_List VALUES ('L294', 'I950', '37', 'pack', '11.5', '425.5');
+INSERT INTO Requisition_List VALUES ('L294', 'I218', '12', 'pack', '2.5', '30');
+INSERT INTO Requisition_List VALUES ('L294', 'I603', '62', 'pack', '5', '310');
+INSERT INTO Requisition_List VALUES ('L294', 'I378', '150', 'slice', '0.04', '6');
+INSERT INTO Requisition_List VALUES ('L294', 'I001', '90', 'piece', '1', '90');
+INSERT INTO Requisition_List VALUES ('L294', 'I999', '52', 'piece', '7', '364');
+INSERT INTO Requisition_List VALUES ('L294', 'I123', '15', 'piece', '46', '690');
+INSERT INTO Requisition_List VALUES ('L296', 'I070', '31', 'bucket', '3', '93');
+INSERT INTO Requisition_List VALUES ('L296', 'I628', '17', 'box', '7', '119');
+INSERT INTO Requisition_List VALUES ('L296', 'I881', '12', 'box', '7', '84');
+INSERT INTO Requisition_List VALUES ('L296', 'I348', '142', 'slice', '0.09', '12.78');
+INSERT INTO Requisition_List VALUES ('L296', 'I472', '166', 'slice', '0.09', '14.94');
+INSERT INTO Requisition_List VALUES ('L296', 'I603', '32', 'pack', '7', '224');
+INSERT INTO Requisition_List VALUES ('L296', 'I037', '95', 'pack', '5', '475');
+INSERT INTO Requisition_List VALUES ('L296', 'I303', '31', 'pack', '7', '217');
+INSERT INTO Requisition_List VALUES ('L296', 'I003', '7', 'pack', '34', '238');
+INSERT INTO Requisition_List VALUES ('L298', 'I261', '5', 'piece', '57', '285');
+INSERT INTO Requisition_List VALUES ('L298', 'I267', '10', 'piece', '0.5', '5');
+INSERT INTO Requisition_List VALUES ('L298', 'I001', '52', 'piece', '2', '104');
+INSERT INTO Requisition_List VALUES ('L298', 'I999', '32', 'piece', '3', '96');
+INSERT INTO Requisition_List VALUES ('L298', 'I123', '10', 'piece', '41', '410');
+INSERT INTO Requisition_List VALUES ('L298', 'I817', '150', 'slice', '0.01', '1.5');
+INSERT INTO Requisition_List VALUES ('L343', 'I950', '10', 'pack', '11.5', '115');
+INSERT INTO Requisition_List VALUES ('L343', 'I218', '10', 'pack', '2.5', '25');
+INSERT INTO Requisition_List VALUES ('L343', 'I603', '35', 'pack', '5', '175');
+INSERT INTO Requisition_List VALUES ('L343', 'I378', '100', 'slice', '0.04', '4');
+INSERT INTO Requisition_List VALUES ('L343', 'I001', '50', 'piece', '1', '50');
+INSERT INTO Requisition_List VALUES ('L343', 'I123', '8', 'piece', '46', '368');
+INSERT INTO Requisition_List VALUES ('L346', 'I378', '30', 'slice', '0.03', '0.9');
+INSERT INTO Requisition_List VALUES ('L346', 'I348', '326', 'slice', '0.07', '22.82');
+INSERT INTO Requisition_List VALUES ('L346', 'I472', '300', 'slice', '0.09', '27');
+INSERT INTO Requisition_List VALUES ('L346', 'I958', '55', 'pack', '3', '165');
+INSERT INTO Requisition_List VALUES ('L346', 'I007', '20', 'pack', '3', '60');
+INSERT INTO Requisition_List VALUES ('L346', 'I950', '10', 'pack', '14', '140');
+INSERT INTO Requisition_List VALUES ('L346', 'I218', '15', 'pack', '1.7', '25.5');
+INSERT INTO Requisition_List VALUES ('L346', 'I812', '35', 'can', '7', '245');
+INSERT INTO Requisition_List VALUES ('L346', 'I070', '25', 'bucket', '3.5', '87.5');
+INSERT INTO Requisition_List VALUES ('L355', 'I472', '300', 'slice', '0.08', '24');
+INSERT INTO Requisition_List VALUES ('L355', 'I070', '10', 'bucket', '5', '50');
+INSERT INTO Requisition_List VALUES ('L355', 'I958', '30', 'pack', '3', '90');
+INSERT INTO Requisition_List VALUES ('L355', 'I007', '10', 'pack', '2', '20');
+INSERT INTO Requisition_List VALUES ('L355', 'I950', '25', 'pack', '17', '425');
+INSERT INTO Requisition_List VALUES ('L355', 'I628', '15', 'box', '5', '75');
+INSERT INTO Requisition_List VALUES ('L355', 'I791', '26', 'bottle', '13', '338');
+INSERT INTO Requisition_List VALUES ('L355', 'I362', '25', 'bottle', '15', '375');
+INSERT INTO Requisition_List VALUES ('L382', 'I362', '10', 'bottle', '17', '170');
+INSERT INTO Requisition_List VALUES ('L397', 'I193', '130', 'piece', '2', '260');
+INSERT INTO Requisition_List VALUES ('L397', 'I372', '25', 'piece', '27', '675');
+INSERT INTO Requisition_List VALUES ('L397', 'I261', '10', 'piece', '57', '570');
+INSERT INTO Requisition_List VALUES ('L397', 'I267', '15', 'piece', '0.5', '7.5');
+INSERT INTO Requisition_List VALUES ('L397', 'I001', '65', 'piece', '2', '130');
+INSERT INTO Requisition_List VALUES ('L397', 'I999', '45', 'piece', '3', '135');
+INSERT INTO Requisition_List VALUES ('L397', 'I123', '10', 'piece', '41', '410');
+INSERT INTO Requisition_List VALUES ('L397', 'I817', '280', 'slice', '0.01', '2.8');
+INSERT INTO Requisition_List VALUES ('L423', 'I812', '50', 'can', '7.5', '375');
+INSERT INTO Requisition_List VALUES ('L423', 'I355', '20', 'bag', '26', '520');
+INSERT INTO Requisition_List VALUES ('L423', 'I304', '45', 'bag', '4.5', '202.5');
+INSERT INTO Requisition_List VALUES ('L427', 'I628', '15', 'box', '7', '105');
+INSERT INTO Requisition_List VALUES ('L427', 'I434', '20', 'bottle', '3', '60');
+INSERT INTO Requisition_List VALUES ('L427', 'I001', '35', 'piece', '0.5', '17.5');
+INSERT INTO Requisition_List VALUES ('L427', 'I999', '15', 'piece', '4', '60');
+INSERT INTO Requisition_List VALUES ('L431', 'I128', '20', 'bottle', '33', '660');
+INSERT INTO Requisition_List VALUES ('L431', 'I434', '15', 'bottle', '3', '45');
+INSERT INTO Requisition_List VALUES ('L431', 'I383', '55', 'can', '4', '220');
+INSERT INTO Requisition_List VALUES ('L431', 'I812', '30', 'can', '10', '300');
+INSERT INTO Requisition_List VALUES ('L431', 'I218', '20', 'pack', '1.5', '30');
+INSERT INTO Requisition_List VALUES ('L431', 'I603', '55', 'pack', '3', '165');
+INSERT INTO Requisition_List VALUES ('L431', 'I560', '100', 'piece', '7', '700');
+INSERT INTO Requisition_List VALUES ('L431', 'I193', '120', 'piece', '2', '240');
+INSERT INTO Requisition_List VALUES ('L431', 'I372', '50', 'piece', '40', '2000');
+INSERT INTO Requisition_List VALUES ('L434', 'I560', '25', 'piece', '3', '75');
+INSERT INTO Requisition_List VALUES ('L434', 'I193', '32', 'piece', '0.5', '16');
+INSERT INTO Requisition_List VALUES ('L434', 'I812', '35', 'can', '7.5', '262.5');
+INSERT INTO Requisition_List VALUES ('L434', 'I355', '25', 'bag', '26', '650');
+INSERT INTO Requisition_List VALUES ('L434', 'I304', '55', 'bag', '4.5', '247.5');
+INSERT INTO Requisition_List VALUES ('L434', 'I628', '15', 'box', '8', '120');
+INSERT INTO Requisition_List VALUES ('L434', 'I881', '20', 'box', '9.5', '190');
+INSERT INTO Requisition_List VALUES ('L438', 'I128', '10', 'bottle', '45', '450');
+INSERT INTO Requisition_List VALUES ('L438', 'I434', '18', 'bottle', '3', '54');
+INSERT INTO Requisition_List VALUES ('L456', 'I603', '55', 'pack', '5', '275');
+INSERT INTO Requisition_List VALUES ('L456', 'I037', '155', 'pack', '6', '930');
+INSERT INTO Requisition_List VALUES ('L456', 'I303', '25', 'pack', '5', '125');
+INSERT INTO Requisition_List VALUES ('L456', 'I003', '10', 'pack', '30', '300');
+INSERT INTO Requisition_List VALUES ('L456', 'I745', '65', 'can', '2', '130');
+INSERT INTO Requisition_List VALUES ('L526', 'I037', '15', 'pack', '5', '75');
+INSERT INTO Requisition_List VALUES ('L526', 'I303', '40', 'pack', '5', '200');
+INSERT INTO Requisition_List VALUES ('L526', 'I003', '5', 'pack', '45', '225');
+INSERT INTO Requisition_List VALUES ('L526', 'I128', '5', 'bottle', '45', '225');
+INSERT INTO Requisition_List VALUES ('L526', 'I434', '12', 'bottle', '3', '36');
+INSERT INTO Requisition_List VALUES ('L526', 'I628', '15', 'box', '7', '105');
+INSERT INTO Requisition_List VALUES ('L526', 'I881', '15', 'box', '10', '150');
+INSERT INTO Requisition_List VALUES ('L529', 'I958', '35', 'pack', '4.5', '157.5');
+INSERT INTO Requisition_List VALUES ('L529', 'I007', '20', 'pack', '4', '80');
+INSERT INTO Requisition_List VALUES ('L529', 'I003', '5', 'pack', '28', '140');
+INSERT INTO Requisition_List VALUES ('L529', 'I745', '15', 'can', '3', '45');
+INSERT INTO Requisition_List VALUES ('L529', 'I348', '200', 'slice', '0.04', '8');
+INSERT INTO Requisition_List VALUES ('L538', 'I434', '220', 'bottle', '1.5', '330');
+INSERT INTO Requisition_List VALUES ('L538', 'I745', '35', 'can', '3', '105');
+INSERT INTO Requisition_List VALUES ('L538', 'I383', '45', 'can', '3', '135');
+INSERT INTO Requisition_List VALUES ('L538', 'I812', '20', 'can', '8', '160');
+INSERT INTO Requisition_List VALUES ('L538', 'I001', '55', 'piece', '1', '55');
+INSERT INTO Requisition_List VALUES ('L559', 'I812', '10', 'can', '7.5', '75');
+INSERT INTO Requisition_List VALUES ('L559', 'I355', '15', 'bag', '26', '390');
+INSERT INTO Requisition_List VALUES ('L559', 'I304', '35', 'bag', '4.5', '157.5');
+INSERT INTO Requisition_List VALUES ('L559', 'I881', '12', 'box', '9.5', '114');
+INSERT INTO Requisition_List VALUES ('L602', 'I472', '200', 'slice', '0.09', '18');
+INSERT INTO Requisition_List VALUES ('L602', 'I603', '55', 'pack', '7', '385');
+INSERT INTO Requisition_List VALUES ('L602', 'I037', '165', 'pack', '5', '825');
+INSERT INTO Requisition_List VALUES ('L602', 'I303', '20', 'pack', '7', '140');
+INSERT INTO Requisition_List VALUES ('L608', 'I628', '15', 'box', '8', '120');
+INSERT INTO Requisition_List VALUES ('L608', 'I881', '15', 'box', '9.5', '142.5');
+INSERT INTO Requisition_List VALUES ('L608', 'I693', '15', 'bucket', '35', '525');
+INSERT INTO Requisition_List VALUES ('L608', 'I070', '25', 'bucket', '3.5', '87.5');
+INSERT INTO Requisition_List VALUES ('L629', 'I958', '32', 'pack', '2', '64');
+INSERT INTO Requisition_List VALUES ('L629', 'I007', '15', 'pack', '4', '60');
+INSERT INTO Requisition_List VALUES ('L629', 'I950', '35', 'pack', '12', '420');
+INSERT INTO Requisition_List VALUES ('L629', 'I628', '15', 'box', '6', '90');
+INSERT INTO Requisition_List VALUES ('L650', 'I472', '150', 'slice', '0.08', '12');
+INSERT INTO Requisition_List VALUES ('L650', 'I070', '15', 'bucket', '5', '75');
+INSERT INTO Requisition_List VALUES ('L650', 'I958', '25', 'pack', '3', '75');
+INSERT INTO Requisition_List VALUES ('L650', 'I007', '15', 'pack', '2', '30');
+INSERT INTO Requisition_List VALUES ('L650', 'I950', '12', 'pack', '17', '204');
+INSERT INTO Requisition_List VALUES ('L650', 'I628', '10', 'box', '5', '50');
+INSERT INTO Requisition_List VALUES ('L697', 'I628', '5', 'box', '7', '35');
+INSERT INTO Requisition_List VALUES ('L697', 'I434', '25', 'bottle', '3', '75');
+INSERT INTO Requisition_List VALUES ('L697', 'I001', '95', 'piece', '0.5', '47.5');
+INSERT INTO Requisition_List VALUES ('L697', 'I999', '45', 'piece', '4', '180');
+INSERT INTO Requisition_List VALUES ('L736', 'I193', '125', 'piece', '1.2', '150');
+INSERT INTO Requisition_List VALUES ('L736', 'I372', '90', 'piece', '30', '2700');
+INSERT INTO Requisition_List VALUES ('L749', 'I434', '25', 'bottle', '1.5', '37.5');
+INSERT INTO Requisition_List VALUES ('L749', 'I745', '40', 'can', '3', '120');
+INSERT INTO Requisition_List VALUES ('L749', 'I383', '55', 'can', '3', '165');
+INSERT INTO Requisition_List VALUES ('L749', 'I812', '35', 'can', '8', '280');
+INSERT INTO Requisition_List VALUES ('L780', 'I812', '15', 'can', '8', '120');
+INSERT INTO Requisition_List VALUES ('L780', 'I001', '120', 'piece', '1', '120');
+INSERT INTO Requisition_List VALUES ('L780', 'I999', '60', 'piece', '5', '300');
+INSERT INTO Requisition_List VALUES ('L780', 'I950', '25', 'pack', '11', '275');
+INSERT INTO Requisition_List VALUES ('L781', 'I791', '25', 'bottle', '15', '375');
+INSERT INTO Requisition_List VALUES ('L781', 'I362', '45', 'bottle', '23', '1035');
+INSERT INTO Requisition_List VALUES ('L781', 'I128', '25', 'bottle', '34', '850');
+INSERT INTO Requisition_List VALUES ('L781', 'I434', '30', 'bottle', '1.5', '45');
+INSERT INTO Requisition_List VALUES ('L852', 'I193', '155', 'piece', '0.5', '77.5');
+INSERT INTO Requisition_List VALUES ('L852', 'I812', '35', 'can', '7.5', '262.5');
+INSERT INTO Requisition_List VALUES ('L852', 'I355', '20', 'bag', '26', '520');
+INSERT INTO Requisition_List VALUES ('L852', 'I304', '70', 'bag', '4.5', '315');
+INSERT INTO Requisition_List VALUES ('L852', 'I628', '15', 'box', '8', '120');
+INSERT INTO Requisition_List VALUES ('L852', 'I881', '15', 'box', '9.5', '142.5');
+INSERT INTO Requisition_List VALUES ('L872', 'I628', '10', 'box', '8', '80');
+INSERT INTO Requisition_List VALUES ('L872', 'I881', '15', 'box', '9.5', '142.5');
+INSERT INTO Requisition_List VALUES ('L872', 'I693', '15', 'bucket', '35', '525');
+INSERT INTO Requisition_List VALUES ('L872', 'I070', '30', 'bucket', '3.5', '105');
+INSERT INTO Requisition_List VALUES ('L889', 'I958', '45', 'pack', '2', '90');
+INSERT INTO Requisition_List VALUES ('L889', 'I007', '25', 'pack', '4', '100');
+INSERT INTO Requisition_List VALUES ('L889', 'I950', '30', 'pack', '12', '360');
+INSERT INTO Requisition_List VALUES ('L891', 'I037', '185', 'pack', '5', '925');
+INSERT INTO Requisition_List VALUES ('L891', 'I303', '55', 'pack', '5', '275');
+INSERT INTO Requisition_List VALUES ('L891', 'I003', '5', 'pack', '45', '225');
+INSERT INTO Requisition_List VALUES ('L910', 'I434', '15', 'bottle', '3', '45');
+INSERT INTO Requisition_List VALUES ('L910', 'I383', '35', 'can', '4', '140');
+INSERT INTO Requisition_List VALUES ('L910', 'I812', '35', 'can', '10', '350');
+INSERT INTO Requisition_List VALUES ('L910', 'I218', '35', 'pack', '1.5', '52.5');
+INSERT INTO Requisition_List VALUES ('L910', 'I603', '55', 'pack', '3', '165');
+INSERT INTO Requisition_List VALUES ('L910', 'I560', '140', 'piece', '7', '980');
+INSERT INTO Requisition_List VALUES ('L910', 'I193', '100', 'piece', '2', '200');
+INSERT INTO Requisition_List VALUES ('L910', 'I372', '15', 'piece', '40', '600');
+INSERT INTO Requisition_List VALUES ('L910', 'I261', '5', 'piece', '65', '325');
+INSERT INTO Requisition_List VALUES ('L912', 'I560', '72', 'piece', '3', '216');
+INSERT INTO Requisition_List VALUES ('L912', 'I193', '355', 'piece', '0.5', '177.5');
+INSERT INTO Requisition_List VALUES ('L912', 'I812', '25', 'can', '7.5', '187.5');
+INSERT INTO Requisition_List VALUES ('L912', 'I355', '30', 'bag', '26', '780');
+INSERT INTO Requisition_List VALUES ('L912', 'I304', '82', 'bag', '4.5', '369');
+INSERT INTO Requisition_List VALUES ('L912', 'I628', '28', 'box', '8', '224');
+INSERT INTO Requisition_List VALUES ('L912', 'I881', '25', 'box', '9.5', '237.5');
+INSERT INTO Requisition_List VALUES ('L919', 'I693', '25', 'bucket', '31', '775');
+INSERT INTO Requisition_List VALUES ('L919', 'I070', '40', 'bucket', '3', '120');
+INSERT INTO Requisition_List VALUES ('L931', 'I128', '15', 'bottle', '33', '495');
+INSERT INTO Requisition_List VALUES ('L931', 'I434', '25', 'bottle', '3', '75');
+INSERT INTO Requisition_List VALUES ('L931', 'I383', '35', 'can', '4', '140');
+INSERT INTO Requisition_List VALUES ('L931', 'I812', '25', 'can', '10', '250');
+INSERT INTO Requisition_List VALUES ('L931', 'I218', '16', 'pack', '1.5', '24');
+INSERT INTO Requisition_List VALUES ('L931', 'I603', '55', 'pack', '3', '165');
+INSERT INTO Requisition_List VALUES ('L931', 'I560', '120', 'piece', '7', '840');
+INSERT INTO Requisition_List VALUES ('L931', 'I193', '65', 'piece', '2', '130');
+INSERT INTO Requisition_List VALUES ('L931', 'I372', '25', 'piece', '40', '1000');
+INSERT INTO Requisition_List VALUES ('L988', 'I372', '45', 'piece', '18', '810');
+INSERT INTO Requisition_List VALUES ('L988', 'I261', '15', 'piece', '35', '525');
+INSERT INTO Requisition_List VALUES ('L988', 'I267', '55', 'piece', '0.5', '27.5');
+INSERT INTO Requisition_List VALUES ('L992', 'I261', '5', 'piece', '57', '285');
+INSERT INTO Requisition_List VALUES ('L992', 'I267', '15', 'piece', '0.5', '7.5');
+INSERT INTO Requisition_List VALUES ('L992', 'I001', '55', 'piece', '2', '110');
+INSERT INTO Requisition_List VALUES ('L992', 'I999', '52', 'piece', '3', '156');
+INSERT INTO Requisition_List VALUES ('L992', 'I123', '10', 'piece', '41', '410');
+INSERT INTO Requisition_List VALUES ('L992', 'I817', '250', 'slice', '0.01', '2.5');
+INSERT INTO Requisition_List VALUES ('L992', 'I378', '150', 'slice', '0.03', '4.5');
+INSERT INTO Requisition_List VALUES ('L992', 'I348', '320', 'slice', '0.07', '22.4');
+INSERT INTO Requisition_List VALUES ('L992', 'I472', '280', 'slice', '0.09', '25.2');
+
+/*Menu Order Data*/
+INSERT INTO Menu_Order VALUES ('B304', 'A141', '22/03/2020', '11:15', 'M511', 'Takeaway', '3', 'H356', '81.4', 'P548');
+INSERT INTO Menu_Order VALUES ('B393', 'A031', '9/3/2021', '18:52', 'M740', 'Takeaway', '3', 'H891', '202.5', 'P887');
+INSERT INTO Menu_Order VALUES ('B281', 'A070', '29/03/2023', '10:33', 'M071', 'Dine in', '2', 'H356', '65.6', '');
+INSERT INTO Menu_Order VALUES ('B679', 'A970', '10/2/2023', '12:02', 'M142', 'Dine in', '2', 'H356', '99.6', '');
+INSERT INTO Menu_Order VALUES ('B889', 'A627', '6/8/2021', '18:04', 'M149', 'Dine in', '2', 'H152', '326.5', '');
+INSERT INTO Menu_Order VALUES ('B983', 'A987', '25/04/2020', '18:43', 'M488', 'Takeaway', '1', 'H197', '120', 'P513');
+INSERT INTO Menu_Order VALUES ('B489', 'A399', '3/4/2022', '17:22', 'M813', 'Dine in', '2', 'H152', '288.3', '');
+INSERT INTO Menu_Order VALUES ('B992', 'A777', '7/3/2022', '19:01', 'M588', 'Dine in', '1', '', '16', '');
+INSERT INTO Menu_Order VALUES ('B488', 'A813', '12/10/2022', '17:29', 'M295', 'Takeaway', '3', 'H152', '316', 'P384');
+INSERT INTO Menu_Order VALUES ('B898', 'A705', '11/8/2020', '21:55', 'M511', 'Takeaway', '2', '', '34.5', 'P920');
+INSERT INTO Menu_Order VALUES ('B088', 'A168', '12/10/2022', '20:12', 'M346', 'Dine in', '1', '', '35.2', '');
+INSERT INTO Menu_Order VALUES ('B614', 'A798', '18/08/2022', '13:29', 'M142', 'Dine in', '1', 'H356', '60', '');
+INSERT INTO Menu_Order VALUES ('B678', 'A129', '6/5/2022', '18:55', 'M488', 'Dine in', '3', 'H491', '184', '');
+INSERT INTO Menu_Order VALUES ('B665', 'A777', '31/08/2021', '14:25', 'M312', 'Dine in', '3', 'H152', '296.12', '');
+INSERT INTO Menu_Order VALUES ('B915', 'A949', '22/01/2023', '18:59', 'M279', 'Dine in', '1', 'H491', '162.5', '');
+INSERT INTO Menu_Order VALUES ('B430', 'A897', '21/01/2020', '10:10', 'M142', 'Dine in', '1', 'H152', '560', '');
+INSERT INTO Menu_Order VALUES ('B586', 'A428', '26/06/2021', '13:09', 'M241', 'Dine in', '2', 'H891', '201.6', '');
+INSERT INTO Menu_Order VALUES ('B952', 'A777', '11/5/2020', '14:48', 'M813', 'Takeaway', '1', 'H152', '1445.6', 'P373');
+INSERT INTO Menu_Order VALUES ('B810', 'A101', '8/7/2021', '15:41', 'M244', 'Dine in', '3', 'H655', '339', '');
+INSERT INTO Menu_Order VALUES ('B201', 'A210', '5/11/2021', '15:35', 'M142', 'Takeaway', '2', 'H655', '374.4', 'P824');
+INSERT INTO Menu_Order VALUES ('B085', 'A705', '5/8/2020', '10:16', 'M511', 'Takeaway', '1', 'H636', '40.8', 'P978');
+INSERT INTO Menu_Order VALUES ('B456', 'A834', '26/01/2023', '18:52', 'M067', 'Takeaway', '1', 'H636', '44.8', 'P314');
+INSERT INTO Menu_Order VALUES ('B995', 'A428', '19/01/2023', '11:22', 'M279', 'Takeaway', '3', 'H636', '80.8', 'P644');
+INSERT INTO Menu_Order VALUES ('B954', 'A101', '7/11/2021', '11:25', 'M390', 'Dine in', '2', 'H491', '162.5', '');
+INSERT INTO Menu_Order VALUES ('B245', 'A399', '15/01/2021', '18:33', 'M521', 'Dine in', '2', 'H356', '70', '');
+INSERT INTO Menu_Order VALUES ('B230', 'A428', '30/04/2021', '17:56', 'M588', 'Takeaway', '1', '', '31.5', 'P757');
+INSERT INTO Menu_Order VALUES ('B233', 'A987', '11/7/2020', '16:01', 'M741', 'Takeaway', '1', 'H356', '60', 'P935');
+INSERT INTO Menu_Order VALUES ('B068', 'A428', '24/07/2020', '14:51', 'M386', 'Dine in', '2', '', '49.6', '');
+INSERT INTO Menu_Order VALUES ('B298', 'A710', '23/04/2020', '18:15', 'M312', 'Dine in', '3', 'H891', '239.6', '');
+INSERT INTO Menu_Order VALUES ('B441', 'A130', '9/10/2021', '21:47', 'M390', 'Takeaway', '1', 'H197', '129.5', 'P562');
+INSERT INTO Menu_Order VALUES ('B479', 'A130', '2/8/2023', '17:15', 'M067', 'Dine in', '3', 'H152', '358.8', '');
+INSERT INTO Menu_Order VALUES ('B119', 'A347', '28/04/2022', '16:44', 'M056', 'Dine in', '2', 'H491', '185', '');
+INSERT INTO Menu_Order VALUES ('B338', 'A428', '18/08/2022', '14:53', 'M521', 'Dine in', '1', '', '27', '');
+INSERT INTO Menu_Order VALUES ('B293', 'A959', '27/05/2021', '16:04', 'M813', 'Dine in', '2', 'H356', '69.5', '');
+INSERT INTO Menu_Order VALUES ('B243', 'A705', '14/03/2020', '11:52', 'M871', 'Takeaway', '3', 'H891', '223', 'P302');
+INSERT INTO Menu_Order VALUES ('B249', 'A717', '27/06/2020', '21:42', 'M813', 'Dine in', '1', 'H356', '55.6', '');
+INSERT INTO Menu_Order VALUES ('B607', 'A310', '8/11/2021', '19:02', 'M390', 'Dine in', '1', '', '30', '');
+INSERT INTO Menu_Order VALUES ('B150', 'A717', '21/09/2020', '13:49', 'M386', 'Dine in', '3', 'H491', '184', '');
+INSERT INTO Menu_Order VALUES ('B116', 'A970', '4/2/2022', '10:50', 'M390', 'Takeaway', '2', 'H152', '399.52', 'P712');
+INSERT INTO Menu_Order VALUES ('B218', 'A082', '10/3/2020', '19:25', 'M056', 'Dine in', '1', 'H152', '420', '');
+INSERT INTO Menu_Order VALUES ('B797', 'A834', '3/12/2021', '14:28', 'M868', 'Dine in', '2', 'H152', '580.3', '');
+INSERT INTO Menu_Order VALUES ('B997', 'A559', '28/06/2022', '18:27', 'M279', 'Dine in', '3', 'H655', '396.9', '');
+INSERT INTO Menu_Order VALUES ('B122', 'A757', '9/2/2022', '10:52', 'M938', 'Takeaway', '3', 'H655', '128', 'P834');
+INSERT INTO Menu_Order VALUES ('B070', 'A694', '24/04/2020', '20:51', 'M346', 'Dine in', '1', 'H636', '47.36', '');
+INSERT INTO Menu_Order VALUES ('B535', 'A490', '11/1/2023', '21:00', 'M740', 'Dine in', '1', 'H636', '56', '');
+INSERT INTO Menu_Order VALUES ('B297', 'A717', '10/10/2020', '11:29', 'M741', 'Takeaway', '2', 'H636', '50.4', 'P222');
+INSERT INTO Menu_Order VALUES ('B081', 'A834', '5/10/2021', '20:52', 'M871', 'Dine in', '3', 'H636', '181', '');
+INSERT INTO Menu_Order VALUES ('B144', 'A705', '28/05/2023', '10:55', 'M741', 'Dine in', '3', 'H491', '173.8', '');
+INSERT INTO Menu_Order VALUES ('B154', 'A082', '19/05/2020', '10:33', 'M813', 'Dine in', '3', 'H197', '110.2', '');
+INSERT INTO Menu_Order VALUES ('B182', 'A724', '22/11/2022', '19:35', 'M511', 'Takeaway', '2', 'H356', '77.2', 'P230');
+INSERT INTO Menu_Order VALUES ('B017', 'A630', '10/6/2021', '16:32', 'M067', 'Dine in', '1', 'H197', '128', '');
+INSERT INTO Menu_Order VALUES ('B491', 'A627', '15/02/2021', '17:44', 'M244', 'Dine in', '1', 'H356', '92.5', '');
+INSERT INTO Menu_Order VALUES ('B659', 'A898', '19/04/2021', '14:42', 'M071', 'Takeaway', '2', 'H197', '148.8', 'P977');
+INSERT INTO Menu_Order VALUES ('B574', 'A031', '9/11/2022', '16:48', 'M868', 'Dine in', '3', 'H891', '218', '');
+INSERT INTO Menu_Order VALUES ('B849', 'A976', '14/01/2021', '11:21', 'M696', 'Dine in', '2', 'H491', '199', '');
+INSERT INTO Menu_Order VALUES ('B390', 'A021', '8/8/2020', '15:46', 'M488', 'Takeaway', '2', 'H491', '158', 'P322');
+INSERT INTO Menu_Order VALUES ('B529', 'A210', '13/03/2022', '15:23', 'M741', 'Dine in', '2', 'H197', '117.6', '');
+INSERT INTO Menu_Order VALUES ('B263', 'A129', '11/4/2021', '17:23', 'M279', 'Dine in', '1', '', '0', '');
+INSERT INTO Menu_Order VALUES ('B395', 'A399', '16/06/2020', '11:23', 'M238', 'Takeaway', '1', 'H356', '75', 'P273');
+INSERT INTO Menu_Order VALUES ('B026', 'A736', '1/1/2023', '18:30', 'M346', 'Dine in', '3', 'H152', '288', '');
+INSERT INTO Menu_Order VALUES ('B740', 'A168', '10/1/2020', '18:55', 'M071', 'Takeaway', '1', 'H356', '81.56', 'P308');
+INSERT INTO Menu_Order VALUES ('B676', 'A976', '23/10/2020', '18:36', 'M295', 'Dine in', '1', 'H197', '130', '');
+INSERT INTO Menu_Order VALUES ('B861', 'A710', '22/07/2023', '13:37', 'M241', 'Dine in', '2', 'H152', '891', '');
+INSERT INTO Menu_Order VALUES ('B426', 'A898', '1/1/2023', '20:08', 'M740', 'Dine in', '3', 'H655', '1820.3', '');
+INSERT INTO Menu_Order VALUES ('B805', 'A531', '2/10/2021', '16:16', 'M588', 'Takeaway', '2', 'H655', '246', 'P749');
+INSERT INTO Menu_Order VALUES ('B123', 'A757', '1/9/2022', '15:33', 'M067', 'Dine in', '2', 'H655', '501.2', '');
+INSERT INTO Menu_Order VALUES ('B557', 'A429', '30/03/2021', '14:24', 'M238', 'Takeaway', '1', 'H636', '47.6', 'P690');
+INSERT INTO Menu_Order VALUES ('B447', 'A657', '8/5/2022', '11:17', 'M696', 'Dine in', '3', 'H636', '84', '');
+INSERT INTO Menu_Order VALUES ('B388', 'A949', '6/9/2021', '18:44', 'M938', 'Dine in', '2', 'H636', '82.5', '');
+INSERT INTO Menu_Order VALUES ('B035', 'A428', '17/06/2023', '21:03', 'M279', 'Dine in', '2', 'H197', '127.8', '');
+INSERT INTO Menu_Order VALUES ('B111', 'A657', '5/8/2021', '20:04', 'M588', 'Dine in', '2', 'H356', '87.5', '');
+INSERT INTO Menu_Order VALUES ('B912', 'A705', '16/06/2022', '10:17', 'M238', 'Dine in', '2', 'H197', '109.2', '');
+INSERT INTO Menu_Order VALUES ('B227', 'A724', '13/03/2020', '14:31', 'M563', 'Takeaway', '3', 'H491', '170.2', 'P016');
+INSERT INTO Menu_Order VALUES ('B933', 'A371', '23/08/2023', '21:08', 'M346', 'Dine in', '2', 'H491', '181', '');
+INSERT INTO Menu_Order VALUES ('B160', 'A657', '10/10/2021', '13:31', 'M142', 'Dine in', '2', 'H891', '201', '');
+INSERT INTO Menu_Order VALUES ('B613', 'A925', '28/08/2023', '15:19', 'M333', 'Dine in', '3', 'H491', '154.4', '');
+INSERT INTO Menu_Order VALUES ('B419', 'A053', '1/10/2022', '10:16', 'M741', 'Dine in', '2', 'H491', '157.5', '');
+INSERT INTO Menu_Order VALUES ('B328', 'A129', '19/04/2023', '15:34', 'M312', 'Takeaway', '1', 'H197', '125', 'P150');
+INSERT INTO Menu_Order VALUES ('B712', 'A101', '18/11/2020', '14:10', 'M868', 'Dine in', '1', 'H356', '66', '');
+INSERT INTO Menu_Order VALUES ('B789', 'A949', '15/09/2021', '15:15', 'M071', 'Dine in', '2', 'H197', '106.4', '');
+INSERT INTO Menu_Order VALUES ('B687', 'A129', '26/04/2021', '16:40', 'M741', 'Dine in', '1', 'H356', '93.4', '');
+INSERT INTO Menu_Order VALUES ('B004', 'A627', '13/04/2023', '13:05', 'M279', 'Dine in', '2', 'H356', '60', '');
+INSERT INTO Menu_Order VALUES ('B999', 'A428', '13/03/2022', '19:54', 'M030', 'Dine in', '3', 'H152', '259.34', '');
+INSERT INTO Menu_Order VALUES ('B481', 'A813', '27/04/2022', '16:30', 'M312', 'Dine in', '3', 'H152', '1021.2', '');
+INSERT INTO Menu_Order VALUES ('B058', 'A897', '11/2/2023', '16:02', 'M813', 'Takeaway', '1', 'H891', '230.4', 'P852');
+INSERT INTO Menu_Order VALUES ('B200', 'A428', '2/12/2021', '19:05', 'M741', 'Takeaway', '1', 'H152', '722.8', 'P238');
+INSERT INTO Menu_Order VALUES ('B246', 'A531', '4/9/2020', '17:08', 'M149', 'Dine in', '1', 'H655', '148.5', '');
+INSERT INTO Menu_Order VALUES ('B316', 'A129', '7/12/2021', '12:41', 'M696', 'Dine in', '3', 'H655', '283', '');
+INSERT INTO Menu_Order VALUES ('B852', 'A371', '10/11/2020', '10:49', 'M241', 'Takeaway', '1', 'H655', '140.4', 'P273');
+INSERT INTO Menu_Order VALUES ('B241', 'A710', '8/1/2020', '15:48', 'M312', 'Dine in', '2', 'H636', '75.6', '');
+INSERT INTO Menu_Order VALUES ('B152', 'A428', '20/09/2020', '20:50', 'M295', 'Dine in', '3', 'H636', '38.8', '');
+INSERT INTO Menu_Order VALUES ('B739', 'A429', '10/7/2023', '10:48', 'M312', 'Takeaway', '2', '', '20.5', 'P001');
+INSERT INTO Menu_Order VALUES ('B131', 'A070', '9/4/2022', '21:00', 'M868', 'Takeaway', '1', '', '49.5', 'P781');
+INSERT INTO Menu_Order VALUES ('B082', 'A141', '7/5/2021', '13:10', 'M314', 'Dine in', '2', 'H356', '98', '');
+INSERT INTO Menu_Order VALUES ('B135', 'A371', '12/8/2022', '10:10', 'M295', 'Dine in', '1', '', '45', '');
+INSERT INTO Menu_Order VALUES ('B675', 'A141', '7/2/2023', '19:12', 'M868', 'Dine in', '3', 'H356', '61.6', '');
+INSERT INTO Menu_Order VALUES ('B876', 'A959', '4/2/2021', '13:02', 'M741', 'Takeaway', '3', 'H152', '352.6', 'P718');
+INSERT INTO Menu_Order VALUES ('B500', 'A168', '11/9/2022', '20:21', 'M279', 'Dine in', '3', 'H891', '208.1', '');
+INSERT INTO Menu_Order VALUES ('B074', 'A129', '26/05/2023', '20:39', 'M386', 'Dine in', '2', 'H491', '155', '');
+INSERT INTO Menu_Order VALUES ('B492', 'A757', '9/7/2021', '21:24', 'M813', 'Dine in', '1', '', '40.5', '');
+INSERT INTO Menu_Order VALUES ('B477', 'A130', '27/08/2022', '13:12', 'M588', 'Takeaway', '2', 'H356', '76.5', 'P259');
+INSERT INTO Menu_Order VALUES ('B205', 'A834', '30/09/2021', '15:14', 'M149', 'Dine in', '1', '', '11', '');
+INSERT INTO Menu_Order VALUES ('B034', 'A168', '13/10/2020', '19:47', 'M813', 'Dine in', '3', 'H891', '231.4', '');
+INSERT INTO Menu_Order VALUES ('B972', 'A959', '24/07/2023', '10:43', 'M563', 'Dine in', '1', 'H197', '135', '');
+INSERT INTO Menu_Order VALUES ('B565', 'A947', '28/02/2023', '17:14', 'M511', 'Dine in', '3', 'H491', '173.4', '');
+INSERT INTO Menu_Order VALUES ('B106', 'A531', '25/05/2022', '19:26', 'M056', 'Takeaway', '2', 'H152', '260.62', 'P814');
+INSERT INTO Menu_Order VALUES ('B891', 'A210', '31/08/2022', '19:11', 'M740', 'Takeaway', '3', 'H152', '840.5', 'P184');
+INSERT INTO Menu_Order VALUES ('B383', 'A717', '13/07/2023', '10:51', 'M295', 'Dine in', '2', 'H655', '624.6', '');
+INSERT INTO Menu_Order VALUES ('B904', 'A757', '23/03/2023', '20:19', 'M813', 'Dine in', '1', 'H655', '171', '');
+INSERT INTO Menu_Order VALUES ('B476', 'A925', '2/9/2020', '18:37', 'M511', 'Dine in', '2', 'H655', '236', '');
+INSERT INTO Menu_Order VALUES ('B033', 'A777', '11/10/2020', '13:02', 'M386', 'Dine in', '2', 'H636', '468.7', '');
+INSERT INTO Menu_Order VALUES ('B762', 'A657', '14/07/2022', '12:28', 'M938', 'Takeaway', '3', 'H636', '101.6', 'P249');
+INSERT INTO Menu_Order VALUES ('B350', 'A310', '23/06/2023', '10:01', 'M868', 'Takeaway', '3', 'H636', '119', 'P902');
+INSERT INTO Menu_Order VALUES ('B292', 'A129', '4/6/2022', '10:11', 'M390', 'Takeaway', '2', 'H356', '54.8', 'P152');
+INSERT INTO Menu_Order VALUES ('B100', 'A657', '1/3/2021', '15:59', 'M521', 'Dine in', '3', 'H491', '167', '');
+INSERT INTO Menu_Order VALUES ('B220', 'A777', '23/07/2020', '13:11', 'M938', 'Dine in', '1', '', '40', '');
+INSERT INTO Menu_Order VALUES ('B460', 'A555', '15/12/2022', '10:56', 'M390', 'Dine in', '3', 'H891', '215.6', '');
+INSERT INTO Menu_Order VALUES ('B932', 'A053', '26/04/2020', '15:13', 'M813', 'Dine in', '2', 'H197', '123.5', '');
+INSERT INTO Menu_Order VALUES ('B110', 'A798', '4/9/2020', '19:15', 'M386', 'Dine in', '3', '', '304.3', '');
+INSERT INTO Menu_Order VALUES ('B029', 'A970', '6/5/2021', '20:22', 'M696', 'Takeaway', '3', 'H891', '233.5', 'P811');
+INSERT INTO Menu_Order VALUES ('B127', 'A031', '3/1/2021', '11:57', 'M588', 'Dine in', '1', 'H356', '75', '');
+INSERT INTO Menu_Order VALUES ('B280', 'A378', '19/11/2021', '20:12', 'M142', 'Dine in', '1', 'H356', '99', '');
+INSERT INTO Menu_Order VALUES ('B923', 'A987', '6/4/2022', '15:15', 'M696', 'Dine in', '1', '', '35.2', '');
+INSERT INTO Menu_Order VALUES ('B664', 'A627', '16/09/2021', '20:29', 'M521', 'Takeaway', '2', '', '89.7', 'P604');
+INSERT INTO Menu_Order VALUES ('B217', 'A185', '17/09/2022', '10:04', 'M056', 'Dine in', '1', 'H356', '60', '');
+INSERT INTO Menu_Order VALUES ('B257', 'A757', '6/8/2023', '19:44', 'M868', 'Dine in', '3', 'H491', '163.8', '');
+INSERT INTO Menu_Order VALUES ('B941', 'A371', '15/06/2023', '10:22', 'M333', 'Takeaway', '3', 'H152', '973.74', 'P444');
+INSERT INTO Menu_Order VALUES ('B480', 'A371', '11/11/2021', '21:28', 'M813', 'Dine in', '1', 'H152', '270.5', '');
+INSERT INTO Menu_Order VALUES ('B429', 'A347', '12/7/2021', '16:21', 'M279', 'Dine in', '1', 'H491', '172.8', '');
+INSERT INTO Menu_Order VALUES ('B851', 'A070', '10/2/2022', '15:21', 'M067', 'Takeaway', '3', 'H655', '755.1', 'P724');
+INSERT INTO Menu_Order VALUES ('B099', 'A031', '8/2/2023', '16:05', 'M312', 'Takeaway', '3', 'H655', '478.4', 'P532');
+INSERT INTO Menu_Order VALUES ('B379', 'A429', '15/09/2020', '10:08', 'M149', 'Dine in', '3', 'H636', '0', '');
+INSERT INTO Menu_Order VALUES ('B129', 'A736', '7/8/2020', '20:49', 'M588', 'Takeaway', '3', 'H636', '17', 'P083');
+INSERT INTO Menu_Order VALUES ('B470', 'A101', '30/01/2022', '15:57', 'M740', 'Dine in', '1', 'H356', '72', '');
+INSERT INTO Menu_Order VALUES ('B219', 'A786', '28/07/2023', '21:35', 'M346', 'Dine in', '3', 'H197', '111.4', '');
+INSERT INTO Menu_Order VALUES ('B804', 'A056', '6/7/2023', '11:30', 'M333', 'Dine in', '1', '', '45', '');
+INSERT INTO Menu_Order VALUES ('B615', 'A786', '6/9/2022', '20:33', 'M696', 'Takeaway', '1', '', '8.8', 'P955');
+INSERT INTO Menu_Order VALUES ('B837', 'A947', '1/1/2020', '14:48', 'M295', 'Takeaway', '1', 'H356', '56', 'P602');
+INSERT INTO Menu_Order VALUES ('B279', 'A056', '21/12/2021', '21:22', 'M521', 'Dine in', '2', 'H491', '150.2', '');
+INSERT INTO Menu_Order VALUES ('B539', 'A987', '23/06/2023', '11:58', 'M813', 'Takeaway', '1', 'H197', '144', 'P457');
+INSERT INTO Menu_Order VALUES ('B415', 'A141', '4/5/2021', '15:37', 'M521', 'Dine in', '2', 'H197', '148', '');
+INSERT INTO Menu_Order VALUES ('B331', 'A786', '1/8/2020', '15:24', 'M871', 'Dine in', '1', '', '39.6', '');
+INSERT INTO Menu_Order VALUES ('B157', 'A705', '10/2/2020', '21:53', 'M386', 'Takeaway', '2', 'H891', '234.1', 'P599');
+INSERT INTO Menu_Order VALUES ('B256', 'A970', '28/05/2023', '15:47', 'M511', 'Takeaway', '1', 'H197', '100', 'P629');
+INSERT INTO Menu_Order VALUES ('B130', 'A657', '4/8/2020', '10:18', 'M813', 'Dine in', '3', 'H891', '211', '');
+INSERT INTO Menu_Order VALUES ('B128', 'A630', '29/05/2023', '21:42', 'M563', 'Dine in', '1', 'H356', '99', '');
+INSERT INTO Menu_Order VALUES ('B181', 'A898', '16/04/2021', '13:36', 'M238', 'Takeaway', '2', 'H197', '101.6', 'P782');
+INSERT INTO Menu_Order VALUES ('B514', 'A056', '1/4/2020', '14:58', 'M149', 'Dine in', '2', 'H891', '205.6', '');
+INSERT INTO Menu_Order VALUES ('B382', 'A429', '31/07/2020', '16:13', 'M868', 'Dine in', '1', 'H356', '75.6', '');
+INSERT INTO Menu_Order VALUES ('B113', 'A834', '12/3/2021', '11:23', 'M390', 'Dine in', '3', 'H491', '166.78','');
+
+
+
+/*Order Item Data*/
+INSERT INTO Order_Item VALUES ('B304', 'D037', '8', '', '59.5', '', 'J22');
+INSERT INTO Order_Item VALUES ('B304', 'D062', '1', '', '12', '', '');
+INSERT INTO Order_Item VALUES ('B304', 'D247', '1', '', '9.9', '', '');
+INSERT INTO Order_Item VALUES ('B393', 'D285', '6', '', '42', '', '');
+INSERT INTO Order_Item VALUES ('B393', 'D906', '1', '', '10.5', '', '');
+INSERT INTO Order_Item VALUES ('B393', 'D422', '10', '', '150', 'F32', '');
+INSERT INTO Order_Item VALUES ('B281', 'D677', '2', '', '17.6', '', '');
+INSERT INTO Order_Item VALUES ('B281', 'D142', '6', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B679', 'D105', '1', '', '12', '', '');
+INSERT INTO Order_Item VALUES ('B679', 'D650', '6', '', '87.6', 'F46', '');
+INSERT INTO Order_Item VALUES ('B889', 'D541', '10', '', '160', '', '');
+INSERT INTO Order_Item VALUES ('B889', 'D255', '9', '', '166.5', '', '');
+INSERT INTO Order_Item VALUES ('B983', 'D700', '8', '', '120', '', '');
+INSERT INTO Order_Item VALUES ('B489', 'D794', '5', '', '66', '', '');
+INSERT INTO Order_Item VALUES ('B489', 'D543', '9', '', '222.3', '', '');
+INSERT INTO Order_Item VALUES ('B992', 'D280', '10', '', '16', '', 'J07');
+INSERT INTO Order_Item VALUES ('B488', 'D514', '6', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B488', 'D767', '6', '', '81', '', '');
+INSERT INTO Order_Item VALUES ('B488', 'D090', '10', '', '160', '', '');
+INSERT INTO Order_Item VALUES ('B898', 'D464', '10', '', '12.5', '', 'J09');
+INSERT INTO Order_Item VALUES ('B898', 'D688', '2', '', '22', '', '');
+INSERT INTO Order_Item VALUES ('B088', 'D747', '2', '', '35.2', '', '');
+INSERT INTO Order_Item VALUES ('B614', 'D962', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B678', 'D367', '4', '', '55.6', '', '');
+INSERT INTO Order_Item VALUES ('B678', 'D050', '1', '', '15', '', '');
+INSERT INTO Order_Item VALUES ('B678', 'D337', '6', '', '113.4', '', '');
+INSERT INTO Order_Item VALUES ('B665', 'D942', '5', '', '85', '', '');
+INSERT INTO Order_Item VALUES ('B665', 'D898', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B665', 'D651', '4', '', '163.12', '', '');
+INSERT INTO Order_Item VALUES ('B915', 'D317', '5', '', '162.5', '', '');
+INSERT INTO Order_Item VALUES ('B430', 'D647', '8', '', '560', '', '');
+INSERT INTO Order_Item VALUES ('B586', 'D165', '7', '', '0', '', 'J33');
+INSERT INTO Order_Item VALUES ('B586', 'D840', '7', '', '201.6', '', '');
+INSERT INTO Order_Item VALUES ('B952', 'D900', '8', '', '1445.6', '', '');
+INSERT INTO Order_Item VALUES ('B810', 'D542', '8', 'H655', '132', '', '');
+INSERT INTO Order_Item VALUES ('B810', 'D911', '5', 'H655', '95', '', '');
+INSERT INTO Order_Item VALUES ('B810', 'D281', '8', 'H655', '112', '', '');
+INSERT INTO Order_Item VALUES ('B201', 'D198', '8', 'H655', '0', '', 'J43');
+INSERT INTO Order_Item VALUES ('B201', 'D335', '8', 'H655', '374.4', '', '');
+INSERT INTO Order_Item VALUES ('B085', 'D021', '6', 'H636', '40.8', '', '');
+INSERT INTO Order_Item VALUES ('B456', 'D124', '8', 'H636', '44.8', '', '');
+INSERT INTO Order_Item VALUES ('B995', 'D094', '4', 'H636', '19.6', '', '');
+INSERT INTO Order_Item VALUES ('B995', 'D993', '7', 'H636', '25.2', '', '');
+INSERT INTO Order_Item VALUES ('B995', 'D832', '9', 'H636', '36', '', '');
+INSERT INTO Order_Item VALUES ('B954', 'D037', '5', '', '42.5', '', '');
+INSERT INTO Order_Item VALUES ('B954', 'D062', '10', '', '120', '', '');
+INSERT INTO Order_Item VALUES ('B245', 'D247', '2', '', '0', '', 'J81');
+INSERT INTO Order_Item VALUES ('B245', 'D285', '10', '', '70', '', '');
+INSERT INTO Order_Item VALUES ('B230', 'D906', '3', '', '31.5', '', '');
+INSERT INTO Order_Item VALUES ('B233', 'D422', '4', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B068', 'D677', '2', '', '17.6', '', '');
+INSERT INTO Order_Item VALUES ('B068', 'D142', '4', '', '32', '', '');
+INSERT INTO Order_Item VALUES ('B298', 'D105', '6', '', '72', '', '');
+INSERT INTO Order_Item VALUES ('B298', 'D650', '6', '', '87.6', '', '');
+INSERT INTO Order_Item VALUES ('B298', 'D541', '5', '', '80', '', '');
+INSERT INTO Order_Item VALUES ('B441', 'D255', '7', '', '129.5', '', '');
+INSERT INTO Order_Item VALUES ('B479', 'D700', '7', '', '105', '', '');
+INSERT INTO Order_Item VALUES ('B479', 'D794', '8', '', '105.6', '', '');
+INSERT INTO Order_Item VALUES ('B479', 'D543', '6', '', '148.2', '', '');
+INSERT INTO Order_Item VALUES ('B119', 'D280', '10', '', '160', '', '');
+INSERT INTO Order_Item VALUES ('B119', 'D514', '2', '', '25', '', '');
+INSERT INTO Order_Item VALUES ('B338', 'D767', '2', '', '27', '', '');
+INSERT INTO Order_Item VALUES ('B293', 'D090', '2', '', '32', '', '');
+INSERT INTO Order_Item VALUES ('B293', 'D464', '3', '', '37.5', '', '');
+INSERT INTO Order_Item VALUES ('B243', 'D688', '9', '', '99', '', '');
+INSERT INTO Order_Item VALUES ('B243', 'D747', '5', '', '88', '', '');
+INSERT INTO Order_Item VALUES ('B243', 'D962', '3', '', '36', '', '');
+INSERT INTO Order_Item VALUES ('B249', 'D367', '4', '', '55.6', '', '');
+INSERT INTO Order_Item VALUES ('B607', 'D050', '2', '', '30', '', '');
+INSERT INTO Order_Item VALUES ('B150', 'D337', '10', '', '0', '', 'J54');
+INSERT INTO Order_Item VALUES ('B150', 'D942', '8', '', '136', '', '');
+INSERT INTO Order_Item VALUES ('B150', 'D898', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B116', 'D651', '9', '', '367.02', '', '');
+INSERT INTO Order_Item VALUES ('B116', 'D317', '1', '', '32.5', 'F97', '');
+INSERT INTO Order_Item VALUES ('B218', 'D647', '6', '', '420', '', '');
+INSERT INTO Order_Item VALUES ('B797', 'D165', '7', '', '378.7', '', '');
+INSERT INTO Order_Item VALUES ('B797', 'D840', '7', '', '201.6', '', '');
+INSERT INTO Order_Item VALUES ('B997', 'D900', '2', '', '361.4', '', '');
+INSERT INTO Order_Item VALUES ('B997', 'D542', '1', 'H655', '16.5', '', '');
+INSERT INTO Order_Item VALUES ('B997', 'D911', '1', 'H655', '19', '', '');
+INSERT INTO Order_Item VALUES ('B122', 'D281', '2', 'H655', '28', '', '');
+INSERT INTO Order_Item VALUES ('B122', 'D198', '5', 'H655', '100', '', '');
+INSERT INTO Order_Item VALUES ('B122', 'D335', '9', 'H655', '0', '', 'J30');
+INSERT INTO Order_Item VALUES ('B070', 'D021', '7', 'H636', '47.36', '', '');
+INSERT INTO Order_Item VALUES ('B535', 'D124', '10', 'H636', '56', '', '');
+INSERT INTO Order_Item VALUES ('B297', 'D094', '9', 'H636', '43.2', '', '');
+INSERT INTO Order_Item VALUES ('B297', 'D993', '2', 'H636', '7.2', '', '');
+INSERT INTO Order_Item VALUES ('B081', 'D832', '9', 'H636', '36', '', '');
+INSERT INTO Order_Item VALUES ('B081', 'D037', '10', '', '85', '', '');
+INSERT INTO Order_Item VALUES ('B081', 'D062', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B144', 'D247', '2', '', '19.8', '', '');
+INSERT INTO Order_Item VALUES ('B144', 'D285', '10', '', '70', '', '');
+INSERT INTO Order_Item VALUES ('B144', 'D906', '8', '', '84', '', '');
+INSERT INTO Order_Item VALUES ('B154', 'D422', '5', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B154', 'D677', '4', '', '35.2', '', '');
+INSERT INTO Order_Item VALUES ('B154', 'D142', '4', '', '0', '', 'J83');
+INSERT INTO Order_Item VALUES ('B182', 'D105', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B182', 'D650', '2', '', '29.2', '', '');
+INSERT INTO Order_Item VALUES ('B017', 'D541', '8', '', '128', '', '');
+INSERT INTO Order_Item VALUES ('B491', 'D255', '5', '', '92.5', '', '');
+INSERT INTO Order_Item VALUES ('B659', 'D700', '2', '', '30', '', '');
+INSERT INTO Order_Item VALUES ('B659', 'D794', '9', '', '118.8', '', '');
+INSERT INTO Order_Item VALUES ('B574', 'D543', '5', '', '123.5', '', '');
+INSERT INTO Order_Item VALUES ('B574', 'D280', '2', '', '32', '', '');
+INSERT INTO Order_Item VALUES ('B574', 'D514', '5', '', '62.5', '', '');
+INSERT INTO Order_Item VALUES ('B849', 'D767', '10', '', '135', '', '');
+INSERT INTO Order_Item VALUES ('B849', 'D090', '4', '', '64', 'F31', '');
+INSERT INTO Order_Item VALUES ('B390', 'D464', '10', '', '125', 'F48', '');
+INSERT INTO Order_Item VALUES ('B390', 'D688', '3', '', '33', '', '');
+INSERT INTO Order_Item VALUES ('B529', 'D747', '6', '', '105.6', '', '');
+INSERT INTO Order_Item VALUES ('B529', 'D962', '1', '', '12', '', '');
+INSERT INTO Order_Item VALUES ('B263', 'D367', '10', '', '0', '', 'J41');
+INSERT INTO Order_Item VALUES ('B395', 'D050', '5', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B026', 'D337', '10', '', '189', 'F51', '');
+INSERT INTO Order_Item VALUES ('B026', 'D942', '3', '', '51', '', '');
+INSERT INTO Order_Item VALUES ('B026', 'D898', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B740', 'D651', '2', '', '81.56', '', '');
+INSERT INTO Order_Item VALUES ('B676', 'D317', '4', '', '130', '', '');
+INSERT INTO Order_Item VALUES ('B861', 'D647', '5', '', '350', '', '');
+INSERT INTO Order_Item VALUES ('B861', 'D165', '10', '', '541', 'F23', '');
+INSERT INTO Order_Item VALUES ('B426', 'D840', '9', '', '259.2', '', '');
+INSERT INTO Order_Item VALUES ('B426', 'D900', '8', '', '1445.6', '', '');
+INSERT INTO Order_Item VALUES ('B426', 'D542', '7', 'H655', '115.5', '', '');
+INSERT INTO Order_Item VALUES ('B805', 'D911', '10', 'H655', '190', '', '');
+INSERT INTO Order_Item VALUES ('B805', 'D281', '4', 'H655', '56', '', '');
+INSERT INTO Order_Item VALUES ('B123', 'D198', '4', 'H655', '80', '', '');
+INSERT INTO Order_Item VALUES ('B123', 'D335', '9', 'H655', '421.2', '', '');
+INSERT INTO Order_Item VALUES ('B557', 'D021', '7', 'H636', '47.6', '', '');
+INSERT INTO Order_Item VALUES ('B447', 'D124', '9', 'H636', '50.4', '', '');
+INSERT INTO Order_Item VALUES ('B447', 'D094', '1', 'H636', '4.8', '', '');
+INSERT INTO Order_Item VALUES ('B447', 'D993', '8', 'H636', '28.8', '', '');
+INSERT INTO Order_Item VALUES ('B388', 'D832', '10', 'H636', '40', '', '');
+INSERT INTO Order_Item VALUES ('B388', 'D037', '5', '', '42.5', 'F58', '');
+INSERT INTO Order_Item VALUES ('B035', 'D062', '9', '', '108', '', '');
+INSERT INTO Order_Item VALUES ('B035', 'D247', '2', '', '19.8', '', '');
+INSERT INTO Order_Item VALUES ('B111', 'D285', '2', '', '14', '', '');
+INSERT INTO Order_Item VALUES ('B111', 'D906', '7', '', '73.5', '', '');
+INSERT INTO Order_Item VALUES ('B912', 'D422', '2', '', '30', '', '');
+INSERT INTO Order_Item VALUES ('B912', 'D677', '9', '', '79.2', 'F50', '');
+INSERT INTO Order_Item VALUES ('B227', 'D142', '1', '', '8', '', '');
+INSERT INTO Order_Item VALUES ('B227', 'D105', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B227', 'D650', '7', '', '102.2', 'F70', '');
+INSERT INTO Order_Item VALUES ('B933', 'D541', '9', '', '144', '', '');
+INSERT INTO Order_Item VALUES ('B933', 'D255', '2', '', '37', '', '');
+INSERT INTO Order_Item VALUES ('B160', 'D700', '9', '', '135', '', '');
+INSERT INTO Order_Item VALUES ('B160', 'D794', '5', '', '66', '', '');
+INSERT INTO Order_Item VALUES ('B613', 'D543', '2', '', '49.4', '', '');
+INSERT INTO Order_Item VALUES ('B613', 'D280', '5', '', '80', '', '');
+INSERT INTO Order_Item VALUES ('B613', 'D514', '10', '', '25', '', 'J19');
+INSERT INTO Order_Item VALUES ('B419', 'D767', '1', '', '13.5', '', '');
+INSERT INTO Order_Item VALUES ('B419', 'D090', '9', '', '144', '', '');
+INSERT INTO Order_Item VALUES ('B328', 'D464', '10', '', '125', '', '');
+INSERT INTO Order_Item VALUES ('B712', 'D688', '6', '', '66', '', '');
+INSERT INTO Order_Item VALUES ('B789', 'D747', '4', '', '70.4', '', '');
+INSERT INTO Order_Item VALUES ('B789', 'D962', '3', '', '36', '', '');
+INSERT INTO Order_Item VALUES ('B687', 'D367', '6', '', '93.4', '', '');
+INSERT INTO Order_Item VALUES ('B004', 'D050', '4', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B004', 'D337', '3', '', '0', '', 'J79');
+INSERT INTO Order_Item VALUES ('B999', 'D942', '1', '', '17', '', '');
+INSERT INTO Order_Item VALUES ('B999', 'D898', '10', '', '120', 'F96', '');
+INSERT INTO Order_Item VALUES ('B999', 'D651', '3', '', '122.34', '', '');
+INSERT INTO Order_Item VALUES ('B481', 'D317', '9', '', '292.5', 'F33', '');
+INSERT INTO Order_Item VALUES ('B481', 'D647', '5', '', '350', '', '');
+INSERT INTO Order_Item VALUES ('B481', 'D165', '7', '', '378.7', '', '');
+INSERT INTO Order_Item VALUES ('B058', 'D840', '8', '', '230.4', '', '');
+INSERT INTO Order_Item VALUES ('B200', 'D900', '4', '', '722.8', '', '');
+INSERT INTO Order_Item VALUES ('B246', 'D542', '9', 'H655', '148.5', 'F93', '');
+INSERT INTO Order_Item VALUES ('B316', 'D911', '7', 'H655', '133', 'F73', '');
+INSERT INTO Order_Item VALUES ('B316', 'D281', '5', 'H655', '70', '', '');
+INSERT INTO Order_Item VALUES ('B316', 'D198', '4', 'H655', '80', '', '');
+INSERT INTO Order_Item VALUES ('B852', 'D335', '3', 'H655', '140.4', '', '');
+INSERT INTO Order_Item VALUES ('B241', 'D021', '7', 'H636', '47.6', '', '');
+INSERT INTO Order_Item VALUES ('B241', 'D124', '5', 'H636', '28', '', '');
+INSERT INTO Order_Item VALUES ('B152', 'D094', '5', 'H636', '24', '', '');
+INSERT INTO Order_Item VALUES ('B152', 'D993', '3', 'H636', '10.8', '', '');
+INSERT INTO Order_Item VALUES ('B152', 'D832', '1', 'H636', '4', '', '');
+INSERT INTO Order_Item VALUES ('B739', 'D037', '1', '', '8.5', '', '');
+INSERT INTO Order_Item VALUES ('B739', 'D062', '4', '', '12', '', 'J42');
+INSERT INTO Order_Item VALUES ('B131', 'D247', '5', '', '49.5', '', '');
+INSERT INTO Order_Item VALUES ('B082', 'D285', '8', '', '56', 'F35', '');
+INSERT INTO Order_Item VALUES ('B082', 'D906', '4', '', '42', '', '');
+INSERT INTO Order_Item VALUES ('B135', 'D422', '3', '', '45', '', '');
+INSERT INTO Order_Item VALUES ('B675', 'D677', '2', '', '17.6', '', '');
+INSERT INTO Order_Item VALUES ('B675', 'D142', '5', '', '8', '', 'J90');
+INSERT INTO Order_Item VALUES ('B675', 'D105', '3', '', '36', '', '');
+INSERT INTO Order_Item VALUES ('B876', 'D650', '6', '', '87.6', '', '');
+INSERT INTO Order_Item VALUES ('B876', 'D541', '5', '', '80', '', '');
+INSERT INTO Order_Item VALUES ('B876', 'D255', '10', '', '185', 'F47', '');
+INSERT INTO Order_Item VALUES ('B500', 'D700', '3', '', '45', '', '');
+INSERT INTO Order_Item VALUES ('B500', 'D794', '3', '', '39.6', '', '');
+INSERT INTO Order_Item VALUES ('B500', 'D543', '5', '', '123.5', '', '');
+INSERT INTO Order_Item VALUES ('B074', 'D280', '5', '', '80', '', '');
+INSERT INTO Order_Item VALUES ('B074', 'D514', '6', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B492', 'D767', '3', '', '40.5', '', '');
+INSERT INTO Order_Item VALUES ('B477', 'D090', '4', '', '64', '', '');
+INSERT INTO Order_Item VALUES ('B477', 'D464', '1', '', '12.5', '', '');
+INSERT INTO Order_Item VALUES ('B205', 'D688', '1', '', '11', '', '');
+INSERT INTO Order_Item VALUES ('B034', 'D747', '5', '', '88', '', '');
+INSERT INTO Order_Item VALUES ('B034', 'D962', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B034', 'D367', '6', '', '83.4', '', '');
+INSERT INTO Order_Item VALUES ('B972', 'D050', '9', '', '135', '', '');
+INSERT INTO Order_Item VALUES ('B565', 'D337', '6', '', '113.4', '', '');
+INSERT INTO Order_Item VALUES ('B565', 'D942', '7', '', '0', '', 'J59');
+INSERT INTO Order_Item VALUES ('B565', 'D898', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B106', 'D651', '4', '', '163.12', 'F79', '');
+INSERT INTO Order_Item VALUES ('B106', 'D317', '3', '', '97.5', '', '');
+INSERT INTO Order_Item VALUES ('B891', 'D647', '10', '', '700', 'F38', '');
+INSERT INTO Order_Item VALUES ('B891', 'D165', '1', '', '54.1', '', '');
+INSERT INTO Order_Item VALUES ('B891', 'D840', '3', '', '86.4', '', '');
+INSERT INTO Order_Item VALUES ('B383', 'D900', '3', '', '542.1', '', '');
+INSERT INTO Order_Item VALUES ('B383', 'D542', '10', 'H655', '82.5', '', 'J80');
+INSERT INTO Order_Item VALUES ('B904', 'D911', '9', 'H655', '171', '', '');
+INSERT INTO Order_Item VALUES ('B476', 'D281', '4', 'H655', '56', '', '');
+INSERT INTO Order_Item VALUES ('B476', 'D198', '9', 'H655', '180', '', '');
+INSERT INTO Order_Item VALUES ('B033', 'D335', '9', 'H655', '421.1', '', '');
+INSERT INTO Order_Item VALUES ('B033', 'D021', '7', 'H636', '47.6', '', '');
+INSERT INTO Order_Item VALUES ('B762', 'D124', '4', 'H636', '22.4', '', '');
+INSERT INTO Order_Item VALUES ('B762', 'D094', '9', 'H636', '43.2', '', '');
+INSERT INTO Order_Item VALUES ('B762', 'D993', '10', 'H636', '36', 'F29', '');
+INSERT INTO Order_Item VALUES ('B350', 'D832', '2', 'H636', '8', '', '');
+INSERT INTO Order_Item VALUES ('B350', 'D037', '6', '', '51', '', '');
+INSERT INTO Order_Item VALUES ('B350', 'D062', '5', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B292', 'D247', '2', '', '19.8', '', '');
+INSERT INTO Order_Item VALUES ('B292', 'D285', '9', '', '35', '', 'J06');
+INSERT INTO Order_Item VALUES ('B100', 'D906', '6', '', '63', '', '');
+INSERT INTO Order_Item VALUES ('B100', 'D422', '4', '', '60', '', '');
+INSERT INTO Order_Item VALUES ('B100', 'D677', '5', '', '44', 'F63', '');
+INSERT INTO Order_Item VALUES ('B220', 'D142', '5', '', '40', '', '');
+INSERT INTO Order_Item VALUES ('B460', 'D105', '8', '', '96', '', '');
+INSERT INTO Order_Item VALUES ('B460', 'D650', '6', '', '87.6', '', '');
+INSERT INTO Order_Item VALUES ('B460', 'D541', '2', '', '32', '', '');
+INSERT INTO Order_Item VALUES ('B932', 'D255', '1', '', '18.5', '', '');
+INSERT INTO Order_Item VALUES ('B932', 'D700', '7', '', '105', '', '');
+INSERT INTO Order_Item VALUES ('B110', 'D794', '5', '', '66', '', '');
+INSERT INTO Order_Item VALUES ('B110', 'D543', '9', '', '222.3', 'F84', '');
+INSERT INTO Order_Item VALUES ('B110', 'D280', '1', '', '16', 'F36', '');
+INSERT INTO Order_Item VALUES ('B029', 'D514', '6', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B029', 'D767', '7', '', '94.5', '', '');
+INSERT INTO Order_Item VALUES ('B029', 'D090', '4', '', '64', '', '');
+INSERT INTO Order_Item VALUES ('B127', 'D464', '6', '', '75', '', '');
+INSERT INTO Order_Item VALUES ('B280', 'D688', '9', '', '99', 'F27', '');
+INSERT INTO Order_Item VALUES ('B923', 'D747', '2', '', '35.2', '', '');
+INSERT INTO Order_Item VALUES ('B664', 'D962', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B664', 'D367', '3', '', '41.7', '', '');
+INSERT INTO Order_Item VALUES ('B217', 'D050', '9', '', '60', '', 'J51');
+INSERT INTO Order_Item VALUES ('B257', 'D337', '2', '', '37.8', '', '');
+INSERT INTO Order_Item VALUES ('B257', 'D942', '6', '', '102', '', '');
+INSERT INTO Order_Item VALUES ('B257', 'D898', '2', '', '24', '', '');
+INSERT INTO Order_Item VALUES ('B941', 'D651', '8', '', '326.24', '', '');
+INSERT INTO Order_Item VALUES ('B941', 'D317', '7', '', '227.5', '', '');
+INSERT INTO Order_Item VALUES ('B941', 'D647', '6', '', '420', 'F62', '');
+INSERT INTO Order_Item VALUES ('B480', 'D165', '5', '', '270.5', '', '');
+INSERT INTO Order_Item VALUES ('B429', 'D840', '6', '', '172.8', '', '');
+INSERT INTO Order_Item VALUES ('B851', 'D900', '3', '', '542.1', '', '');
+INSERT INTO Order_Item VALUES ('B851', 'D542', '6', 'H655', '99', '', '');
+INSERT INTO Order_Item VALUES ('B851', 'D911', '6', 'H655', '114', '', '');
+INSERT INTO Order_Item VALUES ('B099', 'D281', '6', 'H655', '84', '', '');
+INSERT INTO Order_Item VALUES ('B099', 'D198', '1', 'H655', '20', '', '');
+INSERT INTO Order_Item VALUES ('B099', 'D335', '8', 'H655', '374.4', 'F76', '');
+INSERT INTO Order_Item VALUES ('B379', 'D021', '4', 'H636', '27.2', '', '');
+INSERT INTO Order_Item VALUES ('B379', 'D124', '1', 'H636', '5.6', '', '');
+INSERT INTO Order_Item VALUES ('B379', 'D094', '3', 'H636', '14.4', '', '');
+INSERT INTO Order_Item VALUES ('B129', 'D993', '2', 'H636', '7.2', '', '');
+INSERT INTO Order_Item VALUES ('B129', 'D832', '1', 'H636', '4', '', '');
+INSERT INTO Order_Item VALUES ('B129', 'D037', '2', '', '17', '', '');
+INSERT INTO Order_Item VALUES ('B470', 'D062', '6', '', '72', '', '');
+INSERT INTO Order_Item VALUES ('B219', 'D247', '1', '', '9.9', 'F55', '');
+INSERT INTO Order_Item VALUES ('B219', 'D285', '1', '', '7', '', '');
+INSERT INTO Order_Item VALUES ('B219', 'D906', '9', '', '94.5', '', '');
+INSERT INTO Order_Item VALUES ('B804', 'D422', '3', '', '45', '', '');
+INSERT INTO Order_Item VALUES ('B615', 'D677', '1', '', '8.8', '', '');
+INSERT INTO Order_Item VALUES ('B837', 'D142', '7', '', '56', 'F17', '');
+INSERT INTO Order_Item VALUES ('B279', 'D105', '4', '', '48', '', '');
+INSERT INTO Order_Item VALUES ('B279', 'D650', '7', '', '102.2', '', '');
+INSERT INTO Order_Item VALUES ('B539', 'D541', '9', '', '144', '', '');
+INSERT INTO Order_Item VALUES ('B415', 'D255', '8', '', '148', '', '');
+INSERT INTO Order_Item VALUES ('B415', 'D700', '3', '', '0', '', 'J37');
+INSERT INTO Order_Item VALUES ('B331', 'D794', '3', '', '39.6', '', '');
+INSERT INTO Order_Item VALUES ('B157', 'D543', '3', '', '74.1', '', '');
+INSERT INTO Order_Item VALUES ('B157', 'D280', '10', '', '160', '', '');
+INSERT INTO Order_Item VALUES ('B256', 'D514', '8', '', '100', 'F80', '');
+INSERT INTO Order_Item VALUES ('B130', 'D767', '1', '', '13.5', '', '');
+INSERT INTO Order_Item VALUES ('B130', 'D090', '10', '', '160', '', '');
+INSERT INTO Order_Item VALUES ('B130', 'D464', '3', '', '37.5', '', '');
+INSERT INTO Order_Item VALUES ('B128', 'D688', '9', '', '99', '', '');
+INSERT INTO Order_Item VALUES ('B181', 'D747', '1', '', '17.6', '', '');
+INSERT INTO Order_Item VALUES ('B181', 'D962', '7', '', '84', '', '');
+INSERT INTO Order_Item VALUES ('B514', 'D367', '4', '', '55.6', 'F91', '');
+INSERT INTO Order_Item VALUES ('B514', 'D050', '10', '', '150', 'F30', '');
+INSERT INTO Order_Item VALUES ('B382', 'D337', '8', '', '75.6', '', 'J21');
+INSERT INTO Order_Item VALUES ('B113', 'D942', '6', '', '102', '', '');
+INSERT INTO Order_Item VALUES ('B113', 'D898', '2', '', '24', '', '');
+INSERT INTO Order_Item VALUES ('B113', 'D651', '1', '', '40.78','','');
+
+
+commit;
